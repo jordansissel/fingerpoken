@@ -8,9 +8,18 @@ What works:
 
 What's planned:
 * arbitrary keyboard input.
+* security (https, authentication)
 * many other things.
 
 What you need to run it:
 * ruby
 * rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
 * libxdo (from the xdotool project)
+
+Run it:
+1) Run: ruby fingerpoken.rb
+2) Point your iphone browser at http://yourmachine:5000/
+3) Use your phone as a touchpad.
+
+Optional:
+* Bookmark to home screen. Works from there, too.
