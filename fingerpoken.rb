@@ -9,6 +9,10 @@ require "ffi"
 
 class FingerPoken < Sinatra::Base
   register Sinatra::Async
+  set :haml, :format => :html5
+  set :logging, true
+  set :public, "#{File.dirname(__FILE__)}/public"
+  set :views, "#{File.dirname(__FILE__)}/views"
 
   aget '/' do
     headers "Content-Type" => "text/html"
@@ -26,6 +30,8 @@ module Xdotool
   attach_function :xdo_click, [:pointer, :long, :int], :int
   attach_function :xdo_mousedown, [:pointer, :long, :int], :int
   attach_function :xdo_mouseup, [:pointer, :long, :int], :int
+  attach_function :xdo_type, [:pointer, :long, :string, :long], :int
+  attach_function :xdo_keysequence, [:pointer, :long, :string, :long], :int
 end
 
 EventMachine::run do
@@ -39,12 +45,26 @@ EventMachine::run do
         when "move"
           Xdotool.xdo_mousemove_relative(xdo, request["rel_x"], request["rel_y"])
         when "click"
-          Xdotool.xdo_click(xdo, 0, request["button"]);
+          Xdotool.xdo_click(xdo, 0, request["button"])
         when "mousedown"
-          Xdotool.xdo_mousedown(xdo, 0, request["button"]);
+          Xdotool.xdo_mousedown(xdo, 0, request["button"])
         when "mouseup"
-          Xdotool.xdo_mouseup(xdo, 0, request["button"]);
-      end
+          Xdotool.xdo_mouseup(xdo, 0, request["button"])
+        when "keypress"
+          key = request["key"]
+          if 32.upto(127).include?(key)
+            Xdotool.xdo_type(xdo, 0, request["key"].chr, 12000)
+          else
+            case key
+              when 8 
+                Xdotool.xdo_keysequence(xdo, 0, "BackSpace", 12000)
+              when 13
+                Xdotool.xdo_keysequence(xdo, 0, "Return", 12000)
+              else
+                puts "I don't know how to type web keycode '#{key}'"
+              end # case key
+          end # if 32.upto(127).include?(key)
+      end # case request["action"]
     end # ws.onmessage
   end # WebSocket
   
