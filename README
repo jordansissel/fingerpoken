@@ -15,9 +15,10 @@ What you need to run it:
 * ruby
 * rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
 * libxdo (from the xdotool project)
+* Linux, and X server. OS X and Windows support is probably easy.
 
 Run it:
-1) Run: ruby fingerpoken.rb
+1) Run this on the workstation you want to control: ruby fingerpoken.rb
 2) Point your iphone browser at http://yourmachine:5000/
 3) Use your phone as a touchpad.
 
