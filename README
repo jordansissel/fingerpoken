@@ -1,0 +1,16 @@
+fingerpoken - use your iphone/ipad as a mouse
+
+What works:
+* dragging a finger moves the mouse.
+* tapping clicks
+* double tap clicks twice, etc.
+* tap-drag works like you might expect.
+
+What's planned:
+* arbitrary keyboard input.
+* many other things.
+
+What you need to run it:
+* ruby
+* rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
+* libxdo (from the xdotool project)
