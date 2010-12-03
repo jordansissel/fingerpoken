@@ -1,0 +1,78 @@
+!!! 5
+%html
+  %head
+    %meta{:name => "apple-mobile-web-app-capable", :content => "yes"}
+    %meta{:name => "apple-mobile-web-app-status-bar-style", :content => "default"}
+    %meta{:name => "viewport",
+          :content => "user-scalable=no, width=device-width, height=device-height"}
+  
+    %title= "fingerpoken - iphone/ipad == touchpad"
+    %script{ :src => "https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js",
+             :type => "text/javascript" }
+%body
+  %pre#status
+
+  :javascript
+    (function() {
+      $(document).ready(function() {
+        console.log("OK!");
+        var status = $("#status");
+        status.html("Ready!");
+
+        var state = { 
+          x: -1,
+          y: -1,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        }
+
+        var websocket = new WebSocket("ws://" + document.location.hostname + ":5001");
+        websocket.onopen = function(event) {
+          console.log("websocket ready");
+        }
+
+        $(document).bind("touchstart", function(event) {
+          var e = event.originalEvent;
+          var touches = e.touches;
+          status.html("Start: " + touches[0].clientX + "," + touches[0].clientY);
+          state.x = touches[0].clientX;
+          state.y = touches[0].clientY;
+        });
+
+        $(document).bind("click", function(event) {
+          websocket.send(JSON.stringify({ 
+            action: "click",
+            button: 1,
+          }));
+
+        })
+
+        $(document).bind("touchmove", function(event) {
+          var e = event.originalEvent;
+          var touches = e.touches;
+          //var output = "";
+          //for (var i in touches) {
+            //output += i + ": " + touches[i].clientX + "," + touches[i].clientY + "\n";
+          //}
+          //status.html(output);
+
+          x = touches[0].clientX;
+          y = touches[0].clientY;
+          delta_x = (x - state.x) * 3;
+          delta_y = (y - state.y) * 3;
+
+          state.x = x;
+          state.y = y;
+
+          status.html(delta_x + ", " + delta_y);
+
+          //x: touches[0].clientX, y: touches[0].clientY
+          websocket.send(JSON.stringify({ 
+            action: "move",
+            rel_x: delta_x,
+            rel_y: delta_y
+          }));
+          return e.preventDefault();
+        });
+      });
+    })();
