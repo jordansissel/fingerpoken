@@ -69,6 +69,10 @@
       } else {
         if (state.moving) {
           var e = state.last_move;
+          if (e.rotation < 0) {
+            e.rotation += 360;
+          }
+
           status.html(e.rotation);
           if (e.rotation > 80 && e.rotation < 100) {
             /* Activate the keyboard when there's a 90-dgree rotation*/
@@ -162,7 +166,12 @@
       for (var i in touches) {
         output += i + ": " + touches[i].clientX + "," + touches[i].clientY + "\n";
       }
-      output += "rotation: " + e.rotation + "\n";
+
+      var r = e.rotation;
+      if (r < 0) {
+        r += 360;
+      }
+      output += "rotation: " + r + "\n";
       output += "scale: " + e.scale + "\n";
 
       x = touches[0].clientX;
