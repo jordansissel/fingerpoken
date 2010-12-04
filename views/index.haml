@@ -6,9 +6,16 @@
     %meta{:name => "viewport",
           :content => "user-scalable=no, width=device-width, height=device-height"}
   
+    %link{ :rel => "stylesheet", :href => "/style.css" }
     %title= "fingerpoken - iphone/ipad == touchpad"
     %script{ :src => "https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js",
              :type => "text/javascript" }
+
 %body
-  %pre#status
+  #menu
+    %div.item one
+    %div.item two
+    %div.item three
+  #area
+    %pre#status
   %script{ :src => "/js/fingerpoken.js" }

@@ -1,9 +1,6 @@
 (function() {
   $(document).ready(function() {
-    var status = $("#status");
-    status.html("Ready!");
-
-    var state = { 
+    var state = {
       x: -1,
       y: -1,
       moving: false,
@@ -12,12 +9,28 @@
       height: window.innerHeight,
     }
 
-    var websocket = new WebSocket("ws://" + document.location.hostname + ":5001");
-    websocket.onopen = function(event) {
-      console.log("websocket ready");
+    var connect = function(state) {
+      var websocket = new WebSocket("ws://" + document.location.hostname + ":5001");
+      websocket.onopen = function(event) {
+        console.log("websocket ready");
+      }
+
+      websocket.onclose = function(event) {
+        status.html("Closed, trying to reopen.");
+        setTimeout(1000, function() {
+          connect(state);
+        });
+      }
+
+      state.websocket = websocket;
     }
 
-    $(document).bind("touchstart", function(event) {
+    var status = $("#status");
+    status.html("connecting...");
+
+    connect(state);
+
+    $("#area").bind("touchstart", function(event) {
       event.preventDefault();
       var e = event.originalEvent;
       var touches = e.touches;
@@ -36,7 +49,7 @@
       var now = (new Date()).getTime();
       if ((now - state.last_click) < 170) {
         /* Start dragging */
-        websocket.send(JSON.stringify({
+        state.websocket.send(JSON.stringify({
           action: "mousedown",
           button: state.button,
         }))
@@ -44,11 +57,11 @@
       }
     });
 
-    $(document).bind("touchend", function(event) {
+    $("#area").bind("touchend", function(event) {
       var e = event.originalEvent;
       var touches = e.touches;
       if (state.dragging) {
-        websocket.send(JSON.stringify({
+        state.websocket.send(JSON.stringify({
           action: "mouseup",
           button: state.button,
         }));
@@ -58,16 +71,57 @@
           var e = state.last_move;
           status.html(e.rotation);
           if (e.rotation > 80 && e.rotation < 100) {
-            /* Activate the keyboard */
-            var keyboard = $("<textarea id='keyboard'></textarea>");
+            /* Activate the keyboard when there's a 90-dgree rotation*/
+            var keyboard = $("<textarea id='keyboard' rows='10'></textarea>");
+            keyboard.css("width", "100%");
+            keyboard.css("height", "100%");
             status.html("");
             keyboard.appendTo(status).focus();
+            keyboard.bind("keypress", function(event) {
+              var e = event.originalEvent;
+              var key = e.charCode;
+              console.log(key);
+              if (!key) {
+                key = (e.keyCode ? e.keyCode : e.which);
+              }
+              state.websocket.send(JSON.stringify({ 
+                action: "log",
+                shift: e.shiftKey,
+                char: e.charCode,
+                ctrl: e.ctrlKey,
+                meta: e.ctrlKey,
+              }));
+              state.websocket.send(JSON.stringify({ 
+                action: "keypress",
+                key: key,
+                shift: e.shiftKey,
+              }));
+
+              e.preventDefault();
+            });
+
             keyboard.bind("keyup", function(event) {
               var e = event.originalEvent;
-              var code = (e.keyCode ? e.keyCode : e.which);
-              websocket.send(JSON.stringify({ 
+              state.websocket.send(JSON.stringify({ 
+                action: "log",
+                shift: e.shiftKey,
+                char: e.charCode,
+                key: e.which,
+                ctrl: e.ctrlKey,
+                meta: e.ctrlKey,
+              }));
+              if (e.charCode != 0) {
+                /* non-symbol keys zero-charcode */
+                return;
+              }
+              console.log(key);
+              if (!key) {
+                key = (e.keyCode ? e.keyCode : e.which);
+              }
+              state.websocket.send(JSON.stringify({ 
                 action: "keypress",
-                key: code
+                key: key,
+                shift: e.shiftKey,
               }));
 
               e.preventDefault();
@@ -78,7 +132,7 @@
         } else {
           /* No movement, click! */
           status.html("Click!");
-          websocket.send(JSON.stringify({ 
+          state.websocket.send(JSON.stringify({ 
             action: "click",
             button: state.button,
           }));
@@ -89,7 +143,7 @@
       event.preventDefault();
     });
 
-    $(document).bind("touchmove", function(event) {
+    $("#area").bind("touchmove", function(event) {
       var e = event.originalEvent;
       var touches = e.touches;
       event.preventDefault();
@@ -125,7 +179,7 @@
         /* Skip rotations that are probably not mouse-cursor-wanting movements */
         return;
       }
-      websocket.send(JSON.stringify({ 
+      state.websocket.send(JSON.stringify({ 
         action: "move",
         rel_x: delta_x,
         rel_y: delta_y

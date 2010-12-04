@@ -17,7 +17,12 @@ class FingerPoken < Sinatra::Base
   aget '/' do
     headers "Content-Type" => "text/html"
     body haml :index
-  end
+  end # GET /
+
+  aget '/style.css' do
+    headers "Content-Type" => "text/css; charset=utf8"
+    body sass :style
+  end # GET /style.css
 end
 
 module Xdotool
@@ -52,18 +57,23 @@ EventMachine::run do
           Xdotool.xdo_mouseup(xdo, 0, request["button"])
         when "keypress"
           key = request["key"]
-          if 32.upto(127).include?(key)
-            Xdotool.xdo_type(xdo, 0, request["key"].chr, 12000)
+          if key.is_a?(String)
+            Xdotool.xdo_type(xdo, 0, key, 12000)
           else
-            case key
-              when 8 
-                Xdotool.xdo_keysequence(xdo, 0, "BackSpace", 12000)
-              when 13
-                Xdotool.xdo_keysequence(xdo, 0, "Return", 12000)
-              else
-                puts "I don't know how to type web keycode '#{key}'"
-              end # case key
-          end # if 32.upto(127).include?(key)
+            # assumei nt
+            if 32.upto(127).include?(key)
+              Xdotool.xdo_type(xdo, 0, request["key"].chr, 12000)
+            else
+              case key
+                when 8 
+                  Xdotool.xdo_keysequence(xdo, 0, "BackSpace", 12000)
+                when 13
+                  Xdotool.xdo_keysequence(xdo, 0, "Return", 12000)
+                else
+                  puts "I don't know how to type web keycode '#{key}'"
+                end # case key
+            end # if 32.upto(127).include?(key)
+          end # if key.is_a?String
       end # case request["action"]
     end # ws.onmessage
   end # WebSocket
