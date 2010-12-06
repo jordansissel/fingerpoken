@@ -103,6 +103,19 @@
               }));
 
               e.preventDefault();
+            }).bind("change", function(event) {
+              /* Skip empty changes */
+              if (keyboard.val() == "") {
+                return;
+              }
+
+              state.websocket.send(JSON.stringify({ 
+                action: "type",
+                string: keyboard.val(),
+              }));
+
+              /* Clear the field */
+              keyboard.val("");
             });
 
             keyboard.bind("keyup", function(event) {
