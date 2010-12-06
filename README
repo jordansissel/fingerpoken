@@ -1,22 +1,28 @@
 fingerpoken - use your iphone/ipad as a mouse
 
+Video demo: http://www.youtube.com/watch?v=39PtZoxW_fM
+
 What works:
 * dragging a finger moves the mouse.
-* tapping clicks
+* tap clicks, 2-finger tap right-clicks, 3 finger-tap middle-clicks
+* two-finger drag up/down scrolls
 * double tap clicks twice, etc.
-* tap-drag works like you might expect.
+* tap-drag works like you might expect (select text, etc).
+* arbitrary keyboard input (do a 90-degree clockwise rotation with two fingers,
+click on the text area that pops up)
 
 What's planned:
-* arbitrary keyboard input.
 * security (https, authentication)
 * many other things.
 
 What you need to run it:
-* an iphone or ipad running iOS >=4.2 (requires websocket support in safari)
-* ruby
-* rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
-* libxdo (from the xdotool project)
-* Linux, and X server. OS X and Windows support is probably easy.
+  client:
+    * client: an iphone or ipad running iOS >=4.2 (requires websocket support in safari)
+  server:
+    * ruby
+    * rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
+    * libxdo (from the xdotool project)
+    * Linux, and X server. OS X and Windows support is probably easy.
 
 Run it:
 1) Run this on the workstation you want to control: ruby fingerpoken.rb
@@ -29,6 +35,7 @@ Optional:
 TODO:
 * Add VNC protocol support
 * Test on Windows
+* Test on OS X
 * Add better UI to select: typing, arrows, mouse clicks, etc.
 * Configuration UI (saves using web storage)
 * Swipe-horizontal sends left/right?
