@@ -59,7 +59,13 @@ EventMachine::run do
         when "keypress"
           key = request["key"]
           if key.is_a?(String)
-            Xdotool.xdo_type(xdo, 0, key, 12000)
+            if key.length == 1
+              # Assume letter
+              Xdotool.xdo_type(xdo, 0, key, 12000)
+            else
+              # Assume keysym
+              Xdotool.xdo_keysequence(xdo, 0, key, 12000)
+            end
           else
             # type printables, key others.
             if 32.upto(127).include?(key)

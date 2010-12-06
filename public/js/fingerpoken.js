@@ -7,6 +7,7 @@
       dragging: false,
       width: window.innerWidth,
       height: window.innerHeight,
+      key: undefined,
     }
     var status = $("#status");
 
@@ -210,6 +211,38 @@
           rel_y: delta_y
         }));
       }
+    }); /*  $("#area").bind("touchmove", ... )*/
+
+    $("#leftarrow").bind("touchstart", function(event) {
+      event.preventDefault();
+      state.key = "Left";
+    }).bind("touchmove", function(event) {
+      event.preventDefault();
+    }).bind("touchend", function(event) {
+      event.preventDefault();
+      if (state.key == "Left") {
+        state.websocket.send(JSON.stringify({ 
+          action: "keypress",
+          key: "Left",
+        }));
+      }
     });
-  });
+
+    $("#rightarrow").bind("touchstart", function(event) {
+      event.preventDefault();
+      state.key = "Right";
+    }).bind("touchmove", function(event) {
+      event.preventDefault();
+    }).bind("touchend", function(event) {
+      event.preventDefault();
+      if (state.key == "Right") {
+        state.websocket.send(JSON.stringify({ 
+          action: "keypress",
+          key: "Right",
+        }));
+      }
+    });
+
+    
+  }); /* $(document).ready */
 })();
