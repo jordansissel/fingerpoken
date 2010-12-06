@@ -19,9 +19,9 @@
 
       websocket.onclose = function(event) {
         status.html("Closed, trying to reopen.");
-        setTimeout(1000, function() {
+        setTimeout(function() {
           connect(state);
-        });
+        }, 1000);
       }
 
       state.websocket = websocket;
