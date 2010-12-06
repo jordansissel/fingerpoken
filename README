@@ -25,3 +25,8 @@ Run it:
 
 Optional:
 * Bookmark to home screen. Works from there, too.
+
+TODO:
+* Add VNC protocol support
+* Test on Windows
+* Add better UI to select: typing, arrows, mouse clicks, etc.
