@@ -30,3 +30,5 @@ TODO:
 * Add VNC protocol support
 * Test on Windows
 * Add better UI to select: typing, arrows, mouse clicks, etc.
+* Configuration UI (saves using web storage)
+* Swipe-horizontal sends left/right?
