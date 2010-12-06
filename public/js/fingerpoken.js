@@ -8,11 +8,13 @@
       width: window.innerWidth,
       height: window.innerHeight,
     }
+    var status = $("#status");
 
     var connect = function(state) {
+      status.html("connecting...");
       var websocket = new WebSocket("ws://" + document.location.hostname + ":5001");
       websocket.onopen = function(event) {
-        console.log("websocket ready");
+        status.html("websocket ready");
       }
 
       websocket.onclose = function(event) {
@@ -24,9 +26,6 @@
 
       state.websocket = websocket;
     }
-
-    var status = $("#status");
-    status.html("connecting...");
 
     connect(state);
 
@@ -69,12 +68,13 @@
       } else {
         if (state.moving) {
           var e = state.last_move;
-          if (e.rotation < 0) {
-            e.rotation += 360;
+          var r = e.rotation;
+          if (r < 0) {
+            r += 360;
           }
 
-          status.html(e.rotation);
-          if (e.rotation > 80 && e.rotation < 100) {
+          status.html(r);
+          if (r > 75 && r < 105) {
             /* Activate the keyboard when there's a 90-dgree rotation*/
             var keyboard = $("<textarea id='keyboard' rows='10'></textarea>");
             keyboard.css("width", "100%");
@@ -114,14 +114,14 @@
                 ctrl: e.ctrlKey,
                 meta: e.ctrlKey,
               }));
-              if (e.charCode != 0) {
-                /* non-symbol keys zero-charcode */
+
+              console.log(key);
+              var key = (e.keyCode ? e.keyCode : e.which);
+              if (key >= 32 && key <= 127) {
+                /* skip printable keys (a-z, etc) */
                 return;
               }
-              console.log(key);
-              if (!key) {
-                key = (e.keyCode ? e.keyCode : e.which);
-              }
+
               state.websocket.send(JSON.stringify({ 
                 action: "keypress",
                 key: key,
@@ -188,11 +188,28 @@
         /* Skip rotations that are probably not mouse-cursor-wanting movements */
         return;
       }
-      state.websocket.send(JSON.stringify({ 
-        action: "move",
-        rel_x: delta_x,
-        rel_y: delta_y
-      }));
+      if (e.scale < 0.9 || e.scale > 1.1) {
+        /* Skip scales that are probably not mouse-cursor-wanting movements */
+        return;
+      }
+
+      if (touches.length > 1 && !state.dragging) {
+        /* Multifinger movement, probably should scroll? */
+        if (delta_y < 0 || delta_y > 0) {
+          /* Scroll */
+          state.websocket.send(JSON.stringify({
+            action: "click",
+            button: (delta_y < 0) ? 4 : 5,
+          }))
+        }
+        
+      } else {
+        state.websocket.send(JSON.stringify({ 
+          action: "move",
+          rel_x: delta_x,
+          rel_y: delta_y
+        }));
+      }
     });
   });
 })();

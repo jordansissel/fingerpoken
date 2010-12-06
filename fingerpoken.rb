@@ -41,6 +41,7 @@ end
 
 EventMachine::run do
   xdo = Xdotool.xdo_new(nil)
+  #vnc = Net::VNC.new("sadness:0", :shared => true, :password => ENV["VNCPASS"])
 
   EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
     ws.onmessage do |message|
@@ -60,7 +61,7 @@ EventMachine::run do
           if key.is_a?(String)
             Xdotool.xdo_type(xdo, 0, key, 12000)
           else
-            # assumei nt
+            # type printables, key others.
             if 32.upto(127).include?(key)
               Xdotool.xdo_type(xdo, 0, request["key"].chr, 12000)
             else

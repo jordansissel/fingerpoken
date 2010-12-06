@@ -1,32 +1,37 @@
 html, body
   background-color: black
-  color: green
+  color: lightgreen
   margin: 0
   padding: 0
   width: 100%
   height: 100%
+
 #menu
   width: 100%
-  height: 40px
-  border-bottom: 1px solid lightgreen
   color: white
   font-family: sans-serif
   font-weight: bold
   text-align: center
+  vertical-align: middle
   padding: 0
+  padding-bottom: 5px
   margin: 0
-  .item:nth-child(1)
-    border: 0px solid white
+
+  .item:last-child
+    border-right: 2px solid lightgreen
   .item
-    border-left: 1px solid white
+    border: 2px solid lightgreen
+    border-right: 0px
+    height: 40px
     padding: 10px
     margin: 0
-    display: inline
     text-align: center
     vertical-align: middle
 #area
   width: 100%
   height: 100%
+#status
+  padding: 10px
 
 #keyboard
   width: 100%
