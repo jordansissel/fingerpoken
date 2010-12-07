@@ -28,7 +28,26 @@
       state.websocket = websocket;
     }
 
+
     connect(state);
+
+    /* This will track orientation/motion changes with the accelerometer and
+     * gyroscope. Not sure how useful this would be... */
+    //$(window).bind("devicemotion", function(event) {
+      //var e = event.originalEvent;
+      //state.accel = e.accelerationIncludingGravity;
+
+      /* Trim shakes */
+      //if (Math.abs(state.accel.x) < 0.22 && Math.abs(state.accel.y) < 0.22) {
+        //return;
+      //}
+      //status.html("Motion: \nx: " + state.accel.x + "\ny: " + state.accel.y + "\nz: " + state.accel.z);
+      //state.websocket.send(JSON.stringify({
+        //action: "move",
+        //rel_x: Math.ceil(state.accel.x) * -1,
+        //rel_y: Math.ceil(state.accel.y) * -1,
+      //}));
+    //});
 
     $("#area").bind("touchstart", function(event) {
       event.preventDefault();
@@ -226,7 +245,7 @@
         }
         
       } else {
-        state.websocket.send(JSON.stringify({ 
+        state.websocket.send(JSON.stringify({
           action: "move",
           rel_x: delta_x,
           rel_y: delta_y
