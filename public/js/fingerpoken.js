@@ -190,9 +190,17 @@
 
       x = touches[0].clientX;
       y = touches[0].clientY;
-      delta_x = (x - state.x) * 3;
-      delta_y = (y - state.y) * 3;
-      output += delta_x + ", " + delta_y + "\n";
+      delta_x = (x - state.x);
+      delta_y = (y - state.y);
+
+      /* Apply acceleration */
+      sign_x = (delta_x < 0 ? -1 : 1);
+      sign_y = (delta_y < 0 ? -1 : 1);
+      delta_x = Math.ceil(Math.pow(Math.abs(delta_x), 1.5) * sign_x);
+      delta_y = Math.ceil(Math.pow(Math.abs(delta_y), 1.5) * sign_y);
+
+
+      output += "Delta: " + delta_x + ", " + delta_y + "\n";
       status.html(output);
 
       state.x = x;
