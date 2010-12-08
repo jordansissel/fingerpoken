@@ -1,6 +1,18 @@
 #!/usr/bin/env ruby
 
 require "rubygems"
+
+# Hack to skip 'openssl' if we don't have it, since we don't use it.
+# https://github.com/jordansissel/fingerpoken/issues/#issue/1
+begin
+  require "openssl"
+rescue LoadError => e
+  # Lie, and say we loaded "openssl"
+  # 'thin' usees 'rack' which requires 'openssl' so it can compute hashes.
+  # We don't need that feature, anyway.
+  $LOADED_FEATURES << "openssl.rb"
+end
+
 require "em-websocket"
 require "json"
 require "rack"
