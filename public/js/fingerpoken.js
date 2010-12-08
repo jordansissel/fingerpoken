@@ -48,6 +48,7 @@
         //rel_y: Math.ceil(state.accel.y) * -1,
       //}));
     //});
+    
 
     $("#area").bind("touchstart", function(event) {
       event.preventDefault();
@@ -74,9 +75,7 @@
         }))
         state.dragging = true;
       }
-    });
-
-    $("#area").bind("touchend", function(event) {
+    }).bind("touchend", function(event) { /* $("#area").bind("touchend" ...  */
       var e = event.originalEvent;
       var touches = e.touches;
       if (state.dragging) {
@@ -178,9 +177,7 @@
       }
       state.moving = false;
       event.preventDefault();
-    });
-
-    $("#area").bind("touchmove", function(event) {
+    }).bind("touchmove", function(event) { /* $("#area").bind("touchmove" ... */
       var e = event.originalEvent;
       var touches = e.touches;
       event.preventDefault();
@@ -251,7 +248,7 @@
           rel_y: delta_y
         }));
       }
-    }); /*  $("#area").bind("touchmove", ... )*/
+    }); /*  $("#area").bind( ... )*/
 
     $("#leftarrow").bind("touchstart", function(event) {
       event.preventDefault();
