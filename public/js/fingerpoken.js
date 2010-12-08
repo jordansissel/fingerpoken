@@ -49,6 +49,9 @@
       //}));
     //});
     
+    $("#menu").bind("touchmove", function(event) { 
+      event.preventDefault();
+    });
 
     $("#area").bind("touchstart", function(event) {
       event.preventDefault();
