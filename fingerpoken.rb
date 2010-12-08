@@ -25,31 +25,71 @@ class FingerPoken < Sinatra::Base
   end # GET /style.css
 end
 
+class Mouse
+  attr_accessor :x
+  attr_accessor :y
+  attr_accessor :buttonmask
+end
+
 class VNCClient < EventMachine::Connection
   include EventMachine::Protocols::VNC::Client
 
   def initialize(channel)
     @channel = channel
-
-  end
-
-  def mousemove(x, y)
-    message = [ POINTER_EVENT, 0, x, y ].pack("CCnn")
-    send_data(message)
+    @mouse = Mouse.new
   end
 
   def ready
     puts "vnc ready"
-    @x = (@screen_width / 2).to_i
-    @y = (@screen_height / 2).to_i
+    # Start in the center of the screen.
+    # VNC doesn't have a 'pointer motion relative' feature, so
+    # we have to track relative motion internally.
+    @mouse.x = (@screen_width / 2).to_i
+    @mouse.y = (@screen_height / 2).to_i
+    @mouse.buttonmask = 0
 
     @channel.subscribe do |request|
+      handle(request)
+    end
+  end
+
+  def handle(request)
+    p request["action"]
+
+    button = (1 << request["button"])
+
+    case request["action"]
+    when "move"
       rel_x = request["rel_x"]
       rel_y = request["rel_y"]
-      @x += rel_x
-      @y += rel_y
-      mousemove(@x, @y)
+      @mouse.x += rel_x
+      @mouse.y += rel_y
+      pointerevent(@mouse.x, @mouse.y, @mouse.buttonmask)
+    when "click"
+      @mouse.buttonmask |= button
+      pointerevent(@mouse.x, @mouse.y, @mouse.buttonmask)
+      # Bad form to sleep, but we want to block the EM reactor until we finish
+      # clicking.
+      #sleep(0.020)
+      @mouse.buttonmask &= ~(button)
+      pointerevent(@mouse.x, @mouse.y, @mouse.buttonmask)
+    when "mousedown"
+      if @mouse.buttonmask & button != 0
+        puts "already down"
+        return
+      end
+      @mouse.buttonmask |= button
+      pointerevent(@mouse.x, @mouse.y, @mouse.buttonmask)
+    when "mouseup"
+      return if @mouse.buttonmask & button == 0
+      @mouse.buttonmask &= ~(button)
+      pointerevent(@mouse.x, @mouse.y, @mouse.buttonmask)
+    else
+      puts "Message type '#{request["action"]}' not supported"
     end
+    puts "Mouse button: #{@mouse.buttonmask}"
+    @mouse.x = (@screen_width / 2).to_i
+    @mouse.y = (@screen_height / 2).to_i
   end
 end
 
@@ -61,11 +101,7 @@ EventMachine::run do
     ws.onmessage do |message|
       request = JSON.parse(message)
       p request
-      case request["action"]
-        when "move"
-          #Xdotool.xdo_mousemove_relative(xdo, request["rel_x"], request["rel_y"])
-          channel.push(request)
-      end # case request["action"]
+      channel.push(request)
     end # ws.onmessage
   end # WebSocket
   
