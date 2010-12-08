@@ -28,7 +28,27 @@
       state.websocket = websocket;
     }
 
+
     connect(state);
+
+    /* This will track orientation/motion changes with the accelerometer and
+     * gyroscope. Not sure how useful this would be... */
+    //$(window).bind("devicemotion", function(event) {
+      //var e = event.originalEvent;
+      //state.accel = e.accelerationIncludingGravity;
+
+      /* Trim shakes */
+      //if (Math.abs(state.accel.x) < 0.22 && Math.abs(state.accel.y) < 0.22) {
+        //return;
+      //}
+      //status.html("Motion: \nx: " + state.accel.x + "\ny: " + state.accel.y + "\nz: " + state.accel.z);
+      //state.websocket.send(JSON.stringify({
+        //action: "move",
+        //rel_x: Math.ceil(state.accel.x) * -1,
+        //rel_y: Math.ceil(state.accel.y) * -1,
+      //}));
+    //});
+    
 
     $("#area").bind("touchstart", function(event) {
       event.preventDefault();
@@ -55,9 +75,7 @@
         }))
         state.dragging = true;
       }
-    });
-
-    $("#area").bind("touchend", function(event) {
+    }).bind("touchend", function(event) { /* $("#area").bind("touchend" ...  */
       var e = event.originalEvent;
       var touches = e.touches;
       if (state.dragging) {
@@ -103,6 +121,19 @@
               }));
 
               e.preventDefault();
+            }).bind("change", function(event) {
+              /* Skip empty changes */
+              if (keyboard.val() == "") {
+                return;
+              }
+
+              state.websocket.send(JSON.stringify({ 
+                action: "type",
+                string: keyboard.val(),
+              }));
+
+              /* Clear the field */
+              keyboard.val("");
             });
 
             keyboard.bind("keyup", function(event) {
@@ -146,9 +177,7 @@
       }
       state.moving = false;
       event.preventDefault();
-    });
-
-    $("#area").bind("touchmove", function(event) {
+    }).bind("touchmove", function(event) { /* $("#area").bind("touchmove" ... */
       var e = event.originalEvent;
       var touches = e.touches;
       event.preventDefault();
@@ -177,9 +206,17 @@
 
       x = touches[0].clientX;
       y = touches[0].clientY;
-      delta_x = (x - state.x) * 3;
-      delta_y = (y - state.y) * 3;
-      output += delta_x + ", " + delta_y + "\n";
+      delta_x = (x - state.x);
+      delta_y = (y - state.y);
+
+      /* Apply acceleration */
+      sign_x = (delta_x < 0 ? -1 : 1);
+      sign_y = (delta_y < 0 ? -1 : 1);
+      delta_x = Math.ceil(Math.pow(Math.abs(delta_x), 1.5) * sign_x);
+      delta_y = Math.ceil(Math.pow(Math.abs(delta_y), 1.5) * sign_y);
+
+
+      output += "Delta: " + delta_x + ", " + delta_y + "\n";
       status.html(output);
 
       state.x = x;
@@ -205,13 +242,13 @@
         }
         
       } else {
-        state.websocket.send(JSON.stringify({ 
+        state.websocket.send(JSON.stringify({
           action: "move",
           rel_x: delta_x,
           rel_y: delta_y
         }));
       }
-    }); /*  $("#area").bind("touchmove", ... )*/
+    }); /*  $("#area").bind( ... )*/
 
     $("#leftarrow").bind("touchstart", function(event) {
       event.preventDefault();

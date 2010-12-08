@@ -68,6 +68,8 @@ EventMachine::run do
           Xdotool.xdo_mousedown(xdo, 0, request["button"])
         when "mouseup"
           Xdotool.xdo_mouseup(xdo, 0, request["button"])
+        when "type"
+          Xdotool.xdo_type(xdo, 0, request["string"], 12000)
         when "keypress"
           key = request["key"]
           if key.is_a?(String)
