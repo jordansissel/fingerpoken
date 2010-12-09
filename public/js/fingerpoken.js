@@ -11,6 +11,25 @@
     }
     var status = $("#status");
 
+    /* Changing orientation sometimes leaves the viewport
+     * not starting at 0,0. Fix it with this hack.
+     * Also, we want to make the content size full height. */
+    $(window).bind("orientationchange resize pageshow", function(event) {
+      scroll(0, 0);
+      console.log(window.orientation);
+
+      var header = $(".header:visible");
+      var footer = $(".footer:visible");
+      var content = $(".content:visible");
+      var viewport_height = $(window).height();
+
+      var content_height = viewport_height - header.outerHeight() - footer.outerHeight();
+
+      /* Trim margin/border/padding height */
+      content_height -= (content.outerHeight() - content.height());
+      content.height(content_height);
+    });
+
     var connect = function(state) {
       status.html("connecting...");
       var websocket = new WebSocket("ws://" + document.location.hostname + ":5001");
@@ -27,7 +46,6 @@
 
       state.websocket = websocket;
     }
-
 
     connect(state);
 

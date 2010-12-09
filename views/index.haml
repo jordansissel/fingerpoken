@@ -4,18 +4,32 @@
     %meta{:name => "apple-mobile-web-app-capable", :content => "yes"}
     %meta{:name => "apple-mobile-web-app-status-bar-style", :content => "default"}
     %meta{:name => "viewport",
-          :content => "user-scalable=no, width=device-width, height=device-height, minimum-scale=1.0, maximum-scale=1.0"}
+          :content => "width=device-width, minimum-scale=1.0, maximum-scale=1.0"}
   
-    %link{ :rel => "stylesheet", :href => "/reset.css" }
-    %link{ :rel => "stylesheet", :href => "/style.css" }
+    %link{ :rel => "stylesheet", :href => "/reset.css", :media => "screen", :type => "text/css" }
+    %link{ :rel => "stylesheet", :href => "/style.css", :media => "screen", :type => "text/css" }
+    %link{ :rel => "stylesheet", :href => "/jquery.mobile-1.0a2.min.css" }
     %title= "fingerpoken - iphone/ipad == touchpad"
-    %script{ :src => "https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js",
+    %script{ :src => "/js/jquery.min.js",
+             :type => "text/javascript" }
+    %script{ :src => "/js/jquery.mobile-1.0a2.min.js",
              :type => "text/javascript" }
 
-%body
-  #menu
-    %span.item#leftarrow> &#8592;
-    %span.item#rightarrow> &#8594;
-  #area
-    %pre#status
-  %script{ :src => "/js/fingerpoken.js" }
+  %body
+    / 
+      #menu
+        %span.item#leftarrow> &#8592;
+        %span.item#rightarrow> &#8594;
+    %div{"data-role" => "page", "data-theme" => "a"}
+      %div.header{"data-role" => "header"}
+        %h1 fingerpoken
+        %a{:href => "config", "data-role" => "button", "data-inline" => true} Config
+        %a{:href => "javascript:window.location.reload()", "data-role" => "button", "data-inline" => true} Reload
+      %div.content{"data-role" => "content"}
+        #area
+          %pre#status
+
+      %div.footer{"data-role" => "footer"}
+        Nothing to see here.
+
+    %script{ :src => "/js/fingerpoken.js" }

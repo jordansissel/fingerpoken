@@ -34,11 +34,11 @@ def main(args)
 
     # TODO(sissel): Pick up here and make command flags to choose the 
     # target (vnc, xdo, etc)
-    #require "fingerpoken/xdo"
-    #target = FingerPoken::Target::Xdo.new :channel => channel
+    require "fingerpoken/xdo"
+    target = FingerPoken::Target::Xdo.new :channel => channel
     
-    require "fingerpoken/vnc"
-    target = FingerPoken::Target::VNC.new :channel => channel
+    #require "fingerpoken/vnc"
+    #target = FingerPoken::Target::VNC.new :channel => channel
 
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
       ws.onmessage do |message|
