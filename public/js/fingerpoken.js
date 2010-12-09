@@ -243,7 +243,7 @@
         
       } else {
         state.websocket.send(JSON.stringify({
-          action: "move",
+          action: "mousemove_relative",
           rel_x: delta_x,
           rel_y: delta_y
         }));

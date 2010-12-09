@@ -27,8 +27,10 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     # TODO(sissel): Hack to make it work in TF2.
     # Mouse movement is always "from center"
     # So after each move, center the cursor.
-    #@x = (@vnc.screen_width / 2).to_i
-    #@y = (@vnc.screen_height / 2).to_i
+    if ENV["RECENTER"]
+      @x = (@vnc.screen_width / 2).to_i
+      @y = (@vnc.screen_height / 2).to_i
+    end
   end
 
 
