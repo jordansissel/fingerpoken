@@ -1,4 +1,6 @@
 (function() {
+  /* TODO(sissel): This could use some serious refactoring. */
+
   $(document).ready(function() {
     var state = {
       x: -1,
@@ -299,6 +301,23 @@
       }
     });
 
+    $("a.command").bind("touchstart", function(event) {
+      //event.preventDefault();
+      state.touchelement = this;
+    }).bind("touchmove", function(event) {
+      event.preventDefault();
+    }).bind("touchend", function(event) {
+      //event.preventDefault();
+      console.log(this)
+      if (state.touchelement == this) {
+        console.log(this)
+        state.websocket.send(JSON.stringify({ 
+          action: $(this).attr("data-action"),
+          key: $(this).attr("data-key"),
+          button: $(this).attr("data-button"),
+        }));
+      }
+    });
     
   }); /* $(document).ready */
 })();

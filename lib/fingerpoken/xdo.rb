@@ -34,15 +34,15 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
   end
 
   def click(button)
-    LibXdo::xdo_click(@xdo, 0, button)
+    LibXdo::xdo_click(@xdo, 0, button.to_i)
   end
 
   def mousedown(button)
-    LibXdo::xdo_mousedown(@xdo, 0, button)
+    LibXdo::xdo_mousedown(@xdo, 0, button.to_i)
   end
 
   def mouseup(button)
-    LibXdo::xdo_mouseup(@xdo, 0, button)
+    LibXdo::xdo_mouseup(@xdo, 0, button.to_i)
   end
 
   def type(string)

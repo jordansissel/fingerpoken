@@ -16,11 +16,7 @@
              :type => "text/javascript" }
 
   %body
-    / 
-      #menu
-        %span.item#leftarrow> &#8592;
-        %span.item#rightarrow> &#8594;
-    %div{"data-role" => "page", "data-theme" => "a"}
+    %div{"data-role" => "page", "data-theme" => "a", "id" => "touchpad"}
       %div.header{"data-role" => "header"}
         %h1 fingerpoken
         %a{:href => "config", "data-role" => "button", "data-inline" => true} Config
@@ -31,10 +27,22 @@
 
       %div.footer{"data-role" => "footer"}
         %span.left
-          %a#prev{:href => "#", "data-role" => "button"} Prev
-          %a#next{:href => "#", "data-role" => "button"} Next
+          %a#extras{:href => "#commands", "data-role" => "button", "data-rel" => "dialog", "data-transition" => "pop"} Commands
         %span.right
-          %a#leftclick{:href => "#", "data-role" => "button"} Left
-          %a#rightclick{:href => "#", "data-role" => "button"} Right
+          %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "1"} Left
+          %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "3"} Right
+
+    %div{"data-role" => "page", "data-theme" => "a", "id" => "commands"}
+      %div{"data-role" => "header"}
+        %h1 Commands
+      %div{"data-role" => "content"}
+        %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "Right"} Next Slide
+        %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "Left"} Prev Slide
+        %hr
+        %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "ctrl+plus"} Zoom In
+        %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "ctrl+minus"} Zoom Out
+        %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "ctrl+0"} Zoom Zero
+      %div{"data-role" => "footer"}
+        %a{:href => "#touchpad", "data-role" => "button"} Touchpad
 
     %script{ :src => "/js/fingerpoken.js" }
