@@ -271,36 +271,14 @@
     }); /*  $("#area").bind( ... )*/
 
 
-    $("#prev").bind("touchstart", function(event) {
-      event.preventDefault();
-      state.key = "Left";
-    }).bind("touchmove", function(event) {
-      event.preventDefault();
-    }).bind("touchend", function(event) {
-      event.preventDefault();
-      if (state.key == "Left") {
-        state.websocket.send(JSON.stringify({ 
-          action: "keypress",
-          key: "Left",
-        }));
-      }
-    });
-
-    $("#next").bind("touchstart", function(event) {
-      event.preventDefault();
-      state.key = "Right";
-    }).bind("touchmove", function(event) {
-      event.preventDefault();
-    }).bind("touchend", function(event) {
-      event.preventDefault();
-      if (state.key == "Right") {
-        state.websocket.send(JSON.stringify({ 
-          action: "keypress",
-          key: "Right",
-        }));
-      }
-    });
-
+    /* Take commands like this:
+     * 
+     * Key press:
+     * <a class="command" data-action="keypress" data-key="key to press">
+     *
+     * Mouse click
+     * <a class="command" data-action="click" data-button="button to click">
+     */
     $("a.command").bind("touchstart", function(event) {
       //event.preventDefault();
       state.touchelement = this;
