@@ -8,6 +8,7 @@ class FingerPoken::Target
 
   def register
     @channel.subscribe do |request|
+      p ["Got", request]
       case request["action"]
       when "mousemove_relative"
         mousemove_relative(request["rel_x"], request["rel_y"])
@@ -19,6 +20,10 @@ class FingerPoken::Target
         mouseup(request["button"])
       when "type"
         type(request["string"])
+      when "keypress"
+        keypress(request["key"])
+      else
+        p ["Unsupported action", request]
       end
     end
   end

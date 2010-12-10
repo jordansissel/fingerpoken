@@ -50,7 +50,7 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
   end
 
   def keypress(key)
-    key = request["key"]
+    p "Pressing: #{key}"
     if key.is_a?(String)
       if key.length == 1
         # Assume letter

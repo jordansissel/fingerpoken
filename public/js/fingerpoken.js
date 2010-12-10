@@ -268,7 +268,8 @@
       }
     }); /*  $("#area").bind( ... )*/
 
-    $("#leftarrow").bind("touchstart", function(event) {
+
+    $("#prev").bind("touchstart", function(event) {
       event.preventDefault();
       state.key = "Left";
     }).bind("touchmove", function(event) {
@@ -283,7 +284,7 @@
       }
     });
 
-    $("#rightarrow").bind("touchstart", function(event) {
+    $("#next").bind("touchstart", function(event) {
       event.preventDefault();
       state.key = "Right";
     }).bind("touchmove", function(event) {

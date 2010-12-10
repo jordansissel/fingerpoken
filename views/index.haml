@@ -30,6 +30,11 @@
           %pre#status
 
       %div.footer{"data-role" => "footer"}
-        Nothing to see here.
+        %span.left
+          %a#prev{:href => "#", "data-role" => "button"} Prev
+          %a#next{:href => "#", "data-role" => "button"} Next
+        %span.right
+          %a#leftclick{:href => "#", "data-role" => "button"} Left
+          %a#rightclick{:href => "#", "data-role" => "button"} Right
 
     %script{ :src => "/js/fingerpoken.js" }
