@@ -62,7 +62,7 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
     else
       # type printables, key others.
       if 32.upto(127).include?(key)
-        LibXdo::xdo_type(@xdo, 0, request["key"].chr, 12000)
+        LibXdo::xdo_type(@xdo, 0, key.chr, 12000)
       else
         case key
           when 8 

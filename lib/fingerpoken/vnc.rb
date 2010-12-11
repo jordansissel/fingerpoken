@@ -33,7 +33,6 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     end
   end
 
-
   def mousemove_relative(x, y)
     @x += x
     @y += y
@@ -41,14 +40,14 @@ class FingerPoken::Target::VNC < FingerPoken::Target
   end
 
   def mousedown(button)
-    button = (1 << (button - 1))
+    button = (1 << (button.to_i - 1))
     return if @buttonmask & button != 0
     @buttonmask |= button
     update
   end
 
   def mouseup(button)
-    button = (1 << (button - 1))
+    button = (1 << (button.to_i - 1))
     return if @buttonmask & button == 0
     @buttonmask &= (~button)
     update
