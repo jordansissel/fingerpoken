@@ -16,10 +16,11 @@
              :type => "text/javascript" }
 
   %body
+    / touchpad
     %div{"data-role" => "page", "data-theme" => "a", "id" => "touchpad"}
       %div.header{"data-role" => "header"}
         %h1 fingerpoken
-        %a{:href => "config", "data-role" => "button", "data-inline" => true} Config
+        %a{:href => "#config", "data-role" => "button", "data-rel" => "dialog", "data-transition" => "pop"} Config
         %a{:href => "javascript:window.location.reload()", "data-role" => "button", "data-inline" => true} Reload
       %div.content{"data-role" => "content"}
         #area
@@ -27,7 +28,7 @@
 
       %div.footer{"data-role" => "footer"}
         %span.left
-          %a#extras{:href => "#commands", "data-role" => "button", "data-rel" => "dialog", "data-transition" => "pop"} Commands
+          %a{:href => "#commands", "data-role" => "button", "data-rel" => "dialog", "data-transition" => "pop"} Commands
         %span.right
           %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "1"} Left
           %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "3"} Right
@@ -35,6 +36,7 @@
     %div{"data-role" => "page", "data-theme" => "a", "id" => "commands"}
       %div{"data-role" => "header"}
         %h1 Commands
+        %a{:href => "#touchpad", "data-role" => "button"} Touchpad
       %div{"data-role" => "content"}
         %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "Right"} Next Slide
         %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "Left"} Prev Slide
@@ -46,7 +48,25 @@
         %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "alt+Return"} Full Screen
         %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "End"} End
         %a.command{:href => "#", "data-role" => "button", "data-action" => "keypress", "data-key" => "Home"} Home
-      %div{"data-role" => "footer"}
+
+    %div{"data-role" => "page", "data-theme" => "a", "id" => "config"}
+      %div{"data-role" => "header"}
         %a{:href => "#touchpad", "data-role" => "button"} Touchpad
+        %h1 Configuration
+      %div{"data-role" => "content"}
+        Mouse movement
+        
+        / Mouse movement type
+        %fieldset{"data-role" => "controlgroup"}
+          %input{:type => :radio, :name => "mouse-config", :id => "mouse-relative", :value => "relative"}
+          %label{:for => "mouse-relative"} relative
+          %input{:type => :radio, :name => "mouse-config", :id => "mouse-absolute", :value => "absolute"}
+          %label{:for => "mouse-absolute"} absolute
+          %input{:type => :radio, :name => "mouse-config", :id => "mouse-vector", :value => "vector"}
+          %label{:for => "mouse-vector"} vector
+
+        / Mouse acceleration
+        %label{:for => "mouse-acceleration"} Acceleration
+        %input{:type => "range", :name => "mouse-acceleration", :id => "mouse-acceleration", :min => 1, :max => 300, :step => "any"}
 
     %script{ :src => "/js/fingerpoken.js" }

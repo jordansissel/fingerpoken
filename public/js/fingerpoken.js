@@ -2,6 +2,19 @@
   /* TODO(sissel): This could use some serious refactoring. */
 
   $(document).ready(function() {
+    var status = $("#status");
+    var config = function (key, value, default_value) {
+      if (value) {
+        status.html("config[" + key + "] = " + value);
+        //alert(key + " => " + value);
+        
+        window.localStorage[key] = value
+        return value
+      } else {
+        return window.localStorage[key] || default_value
+      }
+    };
+
     var state = {
       x: -1,
       y: -1,
@@ -10,8 +23,24 @@
       width: window.innerWidth,
       height: window.innerHeight,
       key: undefined,
-    }
-    var status = $("#status");
+      mouse: { },
+    };
+
+    /* Sync configuration elements */
+
+    /* Mouse movement */
+    console.log(config("fingerpoken/mouse/movement"));
+    $("input[name = \"mouse-config\"]")
+      .bind("change", function(event) {
+        config("fingerpoken/mouse/movement", event.target.value);
+      }).filter("[value = \"" + config("fingerpoken/mouse/movement") + "\"]")
+      .attr("checked", "checked").click()
+    
+    $("input[name = \"mouse-acceleration\"]")
+      .bind("change", function(event) {
+        config("fingerpoken/mouse/acceleration", parseInt(event.target.value));
+        //status.html(event.target.value);
+      }).val(config("fingerpoken/mouse/acceleration")).change();
 
     /* Changing orientation sometimes leaves the viewport
      * not starting at 0,0. Fix it with this hack.
@@ -70,6 +99,8 @@
     //});
     
 
+    /* TODO(sissel): add mousedown/mousemove/mouseup support */
+    console.log($("#touchpad-surface"));
     $("#area").bind("touchstart", function(event) {
       event.preventDefault();
       var e = event.originalEvent;
@@ -95,9 +126,15 @@
         }))
         state.dragging = true;
       }
-    }).bind("touchend", function(event) { /* $("#area").bind("touchend" ...  */
+    }).bind("touchend", function(event) { /* $("#touchpadsurface").bind("touchend" ...  */
       var e = event.originalEvent;
       var touches = e.touches;
+
+      if (state.mouse.vectorTimer) {
+        clearInterval(state.mouse.vectorTimer);
+        state.mouse.vectorTimer = null;
+      }
+
       if (state.dragging) {
         state.websocket.send(JSON.stringify({
           action: "mouseup",
@@ -197,15 +234,15 @@
       }
       state.moving = false;
       event.preventDefault();
-    }).bind("touchmove", function(event) { /* $("#area").bind("touchmove" ... */
+    }).bind("touchmove", function(event) { /* $("#touchpadsurface").bind("touchmove" ... */
       var e = event.originalEvent;
       var touches = e.touches;
       event.preventDefault();
       if (!state.moving) {
         /* Start calculating delta offsets now */
         state.moving = true;
-        state.x = touches[0].clientX;
-        state.y = touches[0].clientY;
+        state.start_x = state.x = touches[0].clientX;
+        state.start_y = state.y = touches[0].clientY;
         /* Skip this event */
         return;
       }
@@ -224,20 +261,23 @@
       output += "rotation: " + r + "\n";
       output += "scale: " + e.scale + "\n";
 
-      x = touches[0].clientX;
-      y = touches[0].clientY;
-      delta_x = (x - state.x);
-      delta_y = (y - state.y);
+      var x = touches[0].clientX;
+      var y = touches[0].clientY;
+      var delta_x = (x - state.x);
+      var delta_y = (y - state.y);
 
       /* Apply acceleration */
-      sign_x = (delta_x < 0 ? -1 : 1);
-      sign_y = (delta_y < 0 ? -1 : 1);
-      delta_x = Math.ceil(Math.pow(Math.abs(delta_x), 1.5) * sign_x);
-      delta_y = Math.ceil(Math.pow(Math.abs(delta_y), 1.5) * sign_y);
+      var sign_x = (delta_x < 0 ? -1 : 1);
+      var sign_y = (delta_y < 0 ? -1 : 1);
 
+      /* jQuery Mobile or HTML 'range' inputs don't support floating point.
+       * Hack around it by using larger numbers and compensating. */
+      var accel = config("fingerpoken/mouse/acceleration", null, 150) / 100.0;
+      output += "Accel: " + accel + "\n";
 
+      var delta_x = Math.ceil(Math.pow(Math.abs(delta_x), accel) * sign_x);
+      var delta_y = Math.ceil(Math.pow(Math.abs(delta_y), accel) * sign_y);
       output += "Delta: " + delta_x + ", " + delta_y + "\n";
-      status.html(output);
 
       state.x = x;
       state.y = y;
@@ -262,13 +302,44 @@
         }
         
       } else {
-        state.websocket.send(JSON.stringify({
-          action: "mousemove_relative",
-          rel_x: delta_x,
-          rel_y: delta_y
-        }));
+        /* TODO(sissel): Refactor these in to fumctions */
+        var movement = config("fingerpoken/mouse/movement");
+        if (movement == "relative") {
+          status.html(output);
+          state.websocket.send(JSON.stringify({
+            action: "mousemove_relative",
+            rel_x: delta_x,
+            rel_y: delta_y
+          }));
+        } else if (movement == "vector") {
+          if (!state.mouse.vectorTimer) {
+            state.mouse.vectorTimer = setInterval(function() {
+              var rx = state.x - state.start_x;
+              var ry = state.y - state.start_y;
+              if (rx == 0 || ry == 0) {
+                return;
+              }
+
+              var sign_rx = (rx < 0 ? -1 : 1);
+              var sign_ry = (ry < 0 ? -1 : 1);
+              var vector_accel = accel / 1.7 /* feels like the right ratio */
+
+              output = "rx,ry = " + rx + ", " + ry + "\n";
+              rx = Math.ceil(Math.pow(Math.abs(rx), vector_accel) * sign_rx);
+              ry = Math.ceil(Math.pow(Math.abs(ry), vector_accel) * sign_ry);
+              output += "rx2,ry2 = " + rx + ", " + ry + "\n"; 
+              status.html(output)
+
+              state.websocket.send(JSON.stringify({
+                action: "mousemove_relative",
+                rel_x: rx,
+                rel_y: ry
+              }));
+            }, 15);
+          }
+        }
       }
-    }); /*  $("#area").bind( ... )*/
+    }); /*  $("#touchpadsurface").bind( ... )*/
 
 
     /* Take commands like this:
@@ -280,15 +351,14 @@
      * <a class="command" data-action="click" data-button="button to click">
      */
     $("a.command").bind("touchstart", function(event) {
-      //event.preventDefault();
       state.touchelement = this;
-    }).bind("touchmove", function(event) {
+    }).bind("mousedown", function(event) {
+      state.touchelement = this;
       event.preventDefault();
-    }).bind("touchend", function(event) {
-      //event.preventDefault();
-      console.log(this)
+    }).bind("touchmove mousemove", function(event) {
+      event.preventDefault();
+    }).bind("touchend mouseup", function(event) {
       if (state.touchelement == this) {
-        console.log(this)
         state.websocket.send(JSON.stringify({ 
           action: $(this).attr("data-action"),
           key: $(this).attr("data-key"),
@@ -296,6 +366,6 @@
         }));
       }
     });
-    
+
   }); /* $(document).ready */
 })();
