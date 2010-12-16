@@ -11,6 +11,8 @@ class FingerPoken::Target
       case request["action"]
       when "mousemove_relative"
         mousemove_relative(request["rel_x"], request["rel_y"])
+      when "move_end"
+        move_end()
       when "click"
         click(request["button"])
       when "mousedown"
@@ -59,5 +61,9 @@ class FingerPoken::Target
 
   def keyup(key)
     @logger.info("keyup not supported")
+  end
+
+  def move_end()
+    @logger.info("move_end not supported")
   end
 end # class FingerPoken::Target

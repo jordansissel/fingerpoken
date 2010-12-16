@@ -35,11 +35,14 @@ def main(args)
       target = URI.parse(url)
       case target.scheme
       when "xdo"
-        require "fingerpoken/xdo"
+        require "fingerpoken/#{target.scheme}"
         targets << [:Xdo, {}]
       when "vnc"
-        require "fingerpoken/vnc"
+        require "fingerpoken/#{target.scheme}"
         targets << [:VNC, {}]
+      when "tivo"
+        require "fingerpoken/#{target.scheme}"
+        targets << [:Tivo, { :host => "192.168.0.134" }]
       end
     end
   end
@@ -59,7 +62,7 @@ def main(args)
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
       ws.onmessage do |message|
         request = JSON.parse(message)
-        puts "Request: #{request.inspect}"
+        #puts "Request: #{request.inspect}"
         channel.push(request)
       end # ws.onmessage
     end # WebSocket

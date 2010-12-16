@@ -154,7 +154,7 @@
 
           status.html(r);
           if (r > 75 && r < 105) {
-            /* Activate the keyboard when there's a 90-dgree rotation*/
+            /* Activate the keyboard when there's a ~90-degree rotation*/
             var keyboard = $("<textarea id='keyboard' rows='10'></textarea>");
             keyboard.css("width", "100%");
             keyboard.css("height", "100%");
@@ -224,7 +224,13 @@
             });
             //status.html("<textarea id='keyboard'></textarea>");
             //$("#keyboard").focus();
+          } else { /* Otherwise, we didn't rotate */
+            state.websocket.send(JSON.stringify({ 
+              action: "move_end",
+            }));
           }
+        } else if (state.scrolling) {
+          /* nothing for now */
         } else {
           /* No movement, click! */
           status.html("Click!");
@@ -236,6 +242,7 @@
         }
       }
       state.moving = false;
+      state.scrolling = false;
       event.preventDefault();
     }).bind("touchmove", function(event) { /* $("#touchpadsurface").bind("touchmove" ... */
       var e = event.originalEvent;
@@ -298,7 +305,7 @@
 
       if (touches.length > 1 && !state.dragging) {
         /* Multifinger movement, probably should scroll? */
-        if (delta_y < 0 || delta_y > 0) {
+        if (Math.abs(delta_y) > 0) {
           /* Scroll */
           state.scroll.y += delta_y;
 
@@ -306,15 +313,16 @@
            * that it is more than 10 pixels. */
           /* TODO(sissel): Make this a config option */
           if (Math.abs(state.scroll.y) > 10) {
+            state.scrolling = true;
             state.scroll.y  = 0;
             state.websocket.send(JSON.stringify({
               action: "click",
               button: (delta_y < 0) ? 4 : 5,
             }))
           }
-        }
-        
+        } /* if (Math.abs(delta_y) > 0) */
       } else {
+        /* Only 1 finger, and we aren't dragging. So let's move! */
         /* TODO(sissel): Refactor these in to fumctions */
         var movement = config("fingerpoken/mouse/movement");
         if (movement == "relative") {
@@ -349,9 +357,9 @@
                 rel_y: ry
               }));
             }, 15);
-          }
-        }
-      }
+          } /* if (!state.mouse.vectorTimer) */
+        } /* mouse vector movement */
+      } /* finger movement */
     }); /*  $("#touchpadsurface").bind( ... )*/
 
 
@@ -375,7 +383,7 @@
         state.websocket.send(JSON.stringify({ 
           action: $(this).attr("data-action"),
           key: $(this).attr("data-key"),
-          button: $(this).attr("data-button"),
+          button: parseInt($(this).attr("data-button")),
         }));
       }
     });
