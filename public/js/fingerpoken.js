@@ -24,6 +24,9 @@
       height: window.innerHeight,
       key: undefined,
       mouse: { },
+      scroll: {
+        y: 0,
+      }
     };
 
     /* Sync configuration elements */
@@ -282,10 +285,12 @@
       state.x = x;
       state.y = y;
 
+      /* TODO(sissel): Make this a config option */
       if (e.rotation < -10 || e.rotation > 10) {
         /* Skip rotations that are probably not mouse-cursor-wanting movements */
         return;
       }
+      /* TODO(sissel): Make this a config option */
       if (e.scale < 0.9 || e.scale > 1.1) {
         /* Skip scales that are probably not mouse-cursor-wanting movements */
         return;
@@ -295,10 +300,18 @@
         /* Multifinger movement, probably should scroll? */
         if (delta_y < 0 || delta_y > 0) {
           /* Scroll */
-          state.websocket.send(JSON.stringify({
-            action: "click",
-            button: (delta_y < 0) ? 4 : 5,
-          }))
+          state.scroll.y += delta_y;
+
+          /* Don't scroll every time we move, wait until we move enough
+           * that it is more than 10 pixels. */
+          /* TODO(sissel): Make this a config option */
+          if (Math.abs(state.scroll.y) > 10) {
+            state.scroll.y  = 0;
+            state.websocket.send(JSON.stringify({
+              action: "click",
+              button: (delta_y < 0) ? 4 : 5,
+            }))
+          }
         }
         
       } else {
