@@ -23,7 +23,10 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
     want_speed = [(x.abs / 30).to_i, 3].min
 
     want_speed *= direction
-    p [want_speed]
+    if want_speed != @state.speed
+      p [want_speed]
+    end
+
     if want_speed > @state.speed
       # increase to it
       1.upto(want_speed - @state.speed).each do
@@ -48,14 +51,24 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
     case button.to_i
     when 1
       @tivo.send_data("IRCODE PAUSE\r\n")
-    when 3 # 'right' click (two fingers)
-      @tivo.send_data("IRCODE SELECT\r\n")
     when 2 # 'middle' click (three fingers)
-      @tivo.send_data("IRCODE TIVO\r\n")
+      @tivo.send_data("IRCODE SELECT\r\n")
+    #when 2 # 'middle' click (three fingers)
+      #@tivo.send_data("IRCODE TIVO\r\n")
     when 4 # scroll up
       @tivo.send_data("IRCODE UP\r\n")
     when 5 # scroll down
       @tivo.send_data("IRCODE DOWN\r\n")
+    end
+  end
+
+  # Hack for now
+  def keypress(key)
+    case key
+    when "Home"
+      @tivo.send_data("IRCODE TIVO\r\n")
+    when "Return"
+      @tivo.send_data("IRCODE SELECT\r\n")
     end
   end
 
@@ -72,6 +85,11 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
 
     def receive_data(data)
       p "Tivo says: #{data}"
+    end
+
+    def send_data(data)
+      puts "Sending: #{data}"
+      super(data)
     end
   end # class TivoClient
 end # class FingerPoken::Target::Tivo 

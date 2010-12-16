@@ -62,7 +62,7 @@ def main(args)
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
       ws.onmessage do |message|
         request = JSON.parse(message)
-        #puts "Request: #{request.inspect}"
+        puts "Request: #{request.inspect}"
         channel.push(request)
       end # ws.onmessage
     end # WebSocket

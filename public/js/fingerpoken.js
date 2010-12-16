@@ -145,7 +145,7 @@
         }));
         state.dragging = false;
       } else {
-        if (state.moving) {
+        if (state.moving && !state.scrolling) {
           var e = state.last_move;
           var r = e.rotation;
           if (r < 0) {
@@ -227,6 +227,7 @@
           } else { /* Otherwise, we didn't rotate */
             state.websocket.send(JSON.stringify({ 
               action: "move_end",
+              now: (new Date()),
             }));
           }
         } else if (state.scrolling) {
@@ -314,6 +315,7 @@
           /* TODO(sissel): Make this a config option */
           if (Math.abs(state.scroll.y) > 10) {
             state.scrolling = true;
+            state.moving = false;
             state.scroll.y  = 0;
             state.websocket.send(JSON.stringify({
               action: "click",
