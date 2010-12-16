@@ -11,9 +11,17 @@ What works:
 * arbitrary keyboard input (do a 90-degree clockwise rotation with two fingers,
 click on the text area that pops up)
 
+Configuring the UI:
+* The 'config' button lets you change a few things:
+  * 'mouse movement' can be relative (normal touchpad), absolute (not supported yet), and vector (start-point + current-point == mouse direction and speed)
+  * You can change the mouse sensitivity.
+
+Options set in the UI will persist across sessions using HTML5 localStorage.
+
 What's planned:
 * security (https, authentication)
 * many other things.
+* Better PC-as-a-client support (mousemovement, clicking, etc)
 
 What you need to run it:
   client:
@@ -21,11 +29,18 @@ What you need to run it:
   server:
     * ruby
     * rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
-    * libxdo (from the xdotool project)
+    * For the xdo target: libxdo (from the xdotool project)
+    * For the vnc target: rubygem eventmachine-vnc
+    * For the tivo target: nothing.
     * Linux, and X server. OS X and Windows support is probably easy.
 
 Run it:
-1) Run this on the workstation you want to control: ruby fingerpoken.rb
+
+  * xdo (X11): fingerpoken.rb -t xdo:///
+  * vnc: fingerpoken.rb -t vnc:///  # no user/auth/host target yet, hack the source :(
+  * tivo: fingerpoken.rb -t tivo://yourtivoip
+
+1) Run fingerpoken 
 2) Point your iphone browser at http://yourmachine:5000/
 3) Use your phone as a touchpad.
 
@@ -33,9 +48,7 @@ Optional:
 * Bookmark to home screen. Works from there, too.
 
 TODO:
-* Add VNC protocol support
+* Add VNC protocol support (Done!)
 * Test on Windows
 * Test on OS X
-* Add better UI to select: typing, arrows, mouse clicks, etc.
-* Configuration UI (saves using web storage)
 * Swipe-horizontal sends left/right?
