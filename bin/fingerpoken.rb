@@ -26,19 +26,35 @@ class FingerPoken < Sinatra::Base
 end
 
 def main(args)
+  targets = []
   opts = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$0} [options]"
+
+    opts.on("-t TARGET", "--target TARGET",
+            "Target a url. Can be given multiple times to target multiple things.") do |url|
+      target = URI.parse(url)
+      case target.scheme
+      when "xdo"
+        require "fingerpoken/xdo"
+        targets << [:Xdo, {}]
+      when "vnc"
+        require "fingerpoken/vnc"
+        targets << [:VNC, {}]
+      end
+    end
   end
+  opts.parse(args)
+
+  puts targets
+
   EventMachine::run do
     $:.unshift(File.dirname(__FILE__) + "/lib")
     channel = EventMachine::Channel.new
 
-    # TODO(sissel): Pick up here and make command flags to choose the 
-    # target (vnc, xdo, etc)
-    require "fingerpoken/xdo"
-    target = FingerPoken::Target::Xdo.new :channel => channel
-    
-    #require "fingerpoken/vnc"
-    #target = FingerPoken::Target::VNC.new :channel => channel
+    targets.each do |klass, args|
+      args.merge!({ :channel => channel })
+      puts FingerPoken::Target.const_get(klass).new(args)
+    end
 
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
       ws.onmessage do |message|
