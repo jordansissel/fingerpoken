@@ -41,24 +41,36 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
       # decrease to it
     end
     @state.speed = want_speed
+
+    if @state.speed > 0
+      char = "\\u23E9" * @state.speed
+    else
+      char = "\\u23EA" * @state.speed.abs
+    end
+    return { "action" => "status", "status" => char }
   end
 
   def move_end
     @tivo.send_data("IRCODE PLAY\r\n")
+    return { "action" => "status", "status" => "\\u25b6" }
   end
 
   def click(button)
     case button.to_i
     when 1
       @tivo.send_data("IRCODE PAUSE\r\n")
+      return { "action" => "status", "status" => "Pause" }
     when 2 # 'middle' click (three fingers)
       @tivo.send_data("IRCODE SELECT\r\n")
+      return { "action" => "status", "status" => "Select" }
     #when 2 # 'middle' click (three fingers)
       #@tivo.send_data("IRCODE TIVO\r\n")
     when 4 # scroll up
       @tivo.send_data("IRCODE UP\r\n")
+      return { "action" => "status", "status" => "Up" }
     when 5 # scroll down
       @tivo.send_data("IRCODE DOWN\r\n")
+      return { "action" => "status", "status" => "Down" }
     end
   end
 

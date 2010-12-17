@@ -63,7 +63,10 @@ def main(args)
       ws.onmessage do |message|
         request = JSON.parse(message)
         puts "Request: #{request.inspect}"
-        channel.push(request)
+        channel.push(
+          :request => request,
+          :callback => proc { |message| ws.send(JSON.dump(message)) }
+        )
       end # ws.onmessage
     end # WebSocket
     

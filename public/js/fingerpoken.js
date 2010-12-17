@@ -29,6 +29,17 @@
       }
     };
 
+    state.message_callback = function(request) {
+      action = request["action"];
+      switch (action) {
+        case "status":
+          //$("#area").html("<h1 class='status'>" + request["status"] + "</h1>");
+          /* Use eval to do unicode escaping */
+          $("#area").html("<h1 class='status'>" + eval("\"" + request["status"] + "\"") + "</h1>");
+          break;
+      }
+    };
+
     /* Sync configuration elements */
 
     /* Mouse movement */
@@ -76,6 +87,11 @@
         setTimeout(function() {
           connect(state);
         }, 1000);
+      }
+
+      websocket.onmessage = function(event) {
+        var request = JSON.parse(event.data);
+        state.message_callback(request)
       }
 
       state.websocket = websocket;

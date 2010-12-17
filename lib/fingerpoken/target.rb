@@ -7,25 +7,30 @@ class FingerPoken::Target
   end
 
   def register
-    @channel.subscribe do |request|
-      case request["action"]
-      when "mousemove_relative"
-        mousemove_relative(request["rel_x"], request["rel_y"])
-      when "move_end"
-        move_end()
-      when "click"
-        click(request["button"])
-      when "mousedown"
-        mousedown(request["button"])
-      when "mouseup"
-        mouseup(request["button"])
-      when "type"
-        type(request["string"])
-      when "keypress"
-        keypress(request["key"])
-      else
-        p ["Unsupported action", request]
+    @channel.subscribe do |obj|
+      request = obj[:request]
+      callback = obj[:callback]
+      response = case request["action"]
+        when "mousemove_relative"
+          mousemove_relative(request["rel_x"], request["rel_y"])
+        when "move_end"
+          move_end()
+        when "click"
+          click(request["button"])
+        when "mousedown"
+          mousedown(request["button"])
+        when "mouseup"
+          mouseup(request["button"])
+        when "type"
+          type(request["string"])
+        when "keypress"
+          keypress(request["key"])
+        else
+          p ["Unsupported action", request]
       end
+
+      p [callback, response]
+      callback.call(response)
     end
   end
 
