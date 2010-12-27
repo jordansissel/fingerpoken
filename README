@@ -37,10 +37,12 @@ What you need to run it:
     * Linux, and X server. OS X and Windows support is probably easy.
 
 Run it:
-
   * xdo (X11): fingerpoken.rb -t xdo:///
   * vnc: fingerpoken.rb -t vnc:///  # no user/auth/host target yet, hack the source :(
   * tivo: fingerpoken.rb -t tivo://yourtivoip
+
+Notes:
+  * TiVo control requires the mouse mode be 'vector' (tap on 'config' to change this)
 
 1) Run fingerpoken 
 2) Point your iphone browser at http://yourmachine:5000/
