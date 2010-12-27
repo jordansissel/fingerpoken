@@ -25,32 +25,29 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
     if @xdo.null?
        raise "xdo_new failed"
     end
-    register
   end
 
   def mousemove_relative(x, y)
-    @logger.info("move #{x},#{y}")
     return LibXdo::xdo_mousemove_relative(@xdo, x, y)
   end
 
   def click(button)
-    LibXdo::xdo_click(@xdo, 0, button.to_i)
+    return LibXdo::xdo_click(@xdo, 0, button.to_i)
   end
 
   def mousedown(button)
-    LibXdo::xdo_mousedown(@xdo, 0, button.to_i)
+    return LibXdo::xdo_mousedown(@xdo, 0, button.to_i)
   end
 
   def mouseup(button)
-    LibXdo::xdo_mouseup(@xdo, 0, button.to_i)
+    return LibXdo::xdo_mouseup(@xdo, 0, button.to_i)
   end
 
   def type(string)
-    LibXdo::xdo_type(@xdo, 0, string, 12000)
+    return LibXdo::xdo_type(@xdo, 0, string, 12000)
   end
 
   def keypress(key)
-    p "Pressing: #{key}"
     if key.is_a?(String)
       if key.length == 1
         # Assume letter
@@ -74,5 +71,6 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
           end # case key
       end # if 32.upto(127).include?(key)
     end # if key.is_a?String
+    return nil
   end # def keypress
 end # class FingerPoken::Target::Xdo 

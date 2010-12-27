@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+$:.unshift "#{File.dirname(__FILE__)}/../lib"
 require "rubygems"
 require "em-websocket"
 require "json"
@@ -36,19 +37,25 @@ def main(args)
       case target.scheme
       when "xdo"
         require "fingerpoken/#{target.scheme}"
-        targets << [:Xdo, {}]
+        targets << [:Xdo, { }]
       when "vnc"
         require "fingerpoken/#{target.scheme}"
-        targets << [:VNC, {}]
+        targets << [:VNC, { 
+                      :host => target.host, :user => target.user,
+                      :password => target.password, :recenter => (target.query == "recenter") 
+                    }]
       when "tivo"
         require "fingerpoken/#{target.scheme}"
-        targets << [:Tivo, { :host => "192.168.0.134" }]
+        targets << [:Tivo, { :host => target.host }]
       end
     end
   end
   opts.parse(args)
 
-  puts targets
+  if targets.size == 0
+    $stderr.puts "No targets given. You should specify one with -t."
+    return 1
+  end
 
   EventMachine::run do
     $:.unshift(File.dirname(__FILE__) + "/lib")
@@ -56,13 +63,13 @@ def main(args)
 
     targets.each do |klass, args|
       args.merge!({ :channel => channel })
-      puts FingerPoken::Target.const_get(klass).new(args)
-    end
+      target = FingerPoken::Target.const_get(klass).new(args)
+      target.register
+    end # targets.each
 
     EventMachine::WebSocket.start(:host => "0.0.0.0", :port => 5001) do |ws|
       ws.onmessage do |message|
         request = JSON.parse(message)
-        puts "Request: #{request.inspect}"
         channel.push(
           :request => request,
           :callback => proc { |message| ws.send(JSON.dump(message)) }
@@ -72,8 +79,8 @@ def main(args)
     
     Rack::Handler::Thin.run(
       Rack::CommonLogger.new( \
-          Rack::ShowExceptions.new( \
-                FingerPoken.new)), :Port => 5000)
+        Rack::ShowExceptions.new( \
+          FingerPoken.new)), :Port => 5000)
   end # EventMachine::run
 end
 

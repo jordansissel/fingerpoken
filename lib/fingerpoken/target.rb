@@ -4,12 +4,14 @@ class FingerPoken::Target
   def initialize(config)
     @channel = config[:channel]
     @logger = Logger.new(STDERR)
+    @logger.level = ($DEBUG ? Logger::DEBUG: Logger::WARN)
   end
 
   def register
     @channel.subscribe do |obj|
       request = obj[:request]
       callback = obj[:callback]
+      @logger.debug(request)
       response = case request["action"]
         when "mousemove_relative"
           mousemove_relative(request["rel_x"], request["rel_y"])
@@ -29,8 +31,9 @@ class FingerPoken::Target
           p ["Unsupported action", request]
       end
 
-      p [callback, response]
-      callback.call(response)
+      if response.is_a?(Hash)
+        callback.call(response)
+      end
     end
   end
 

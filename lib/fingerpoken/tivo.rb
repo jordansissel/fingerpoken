@@ -1,6 +1,11 @@
 #!/usr/bin/env ruby
 
 # TODO(sissel): Refactor the protocol into an EM::Tivo module.
+# Commands
+# 
+#   IRCODE ...
+#   INFO
+#   WINDOW       - aspect ratio
 
 require "rubygems"
 require "fingerpoken/target"
@@ -11,7 +16,8 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
     super(config)
     # TODO(sissel): Make this a config
     @host = config[:host]
-    @tivo = EventMachine::connect(@host, 31339, TivoClient, self)
+    @port = (config[:port] or 31339)
+    @tivo = EventMachine::connect(@host, @port, TivoClient, self)
 
     @state = OpenStruct.new # TODO(sissel): Make this not an open struct...
     
@@ -52,6 +58,7 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
 
   def move_end
     @tivo.send_data("IRCODE PLAY\r\n")
+    @state.speed = 0
     return { "action" => "status", "status" => "\\u25b6" }
   end
 
@@ -82,6 +89,7 @@ class FingerPoken::Target::Tivo < FingerPoken::Target
     when "Return"
       @tivo.send_data("IRCODE SELECT\r\n")
     end
+    return nil
   end
 
   class TivoClient < EventMachine::Connection

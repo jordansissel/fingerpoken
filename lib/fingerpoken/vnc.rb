@@ -9,10 +9,19 @@ class FingerPoken::Target::VNC < FingerPoken::Target
 
   def initialize(config)
     super(config)
-    # TODO(sissel): Make this configurable
-    @password = ENV["VNCPASS"]
-    @host = "sadness"
-    @port = 5900
+    # TODO(sissel): eventmachine-vnc needs to suppore more auth mechanisms
+    @user = config[:user]
+    @password = (config[:password] or config[:user])
+    @host = config[:host]
+    @port = (config[:port] or 5900)
+    @recenter = config[:recenter]
+
+    # For eventmachine-vnc
+    ENV["VNCPASS"] = @password
+
+    if @host == nil
+      raise "#{self.class.name}: No host given to connect to"
+    end
 
     @vnc = EventMachine::connect(@host, @port, VNCClient, self)
     @x = 0
@@ -21,13 +30,12 @@ class FingerPoken::Target::VNC < FingerPoken::Target
   end
 
   def update
-    p [@x, @y, @buttonmask]
     @vnc.pointerevent(@x, @y, @buttonmask)
 
     # TODO(sissel): Hack to make it work in TF2.
     # Mouse movement is always "from center"
     # So after each move, center the cursor.
-    if ENV["RECENTER"]
+    if @recenter
       @x = (@vnc.screen_width / 2).to_i
       @y = (@vnc.screen_height / 2).to_i
     end
@@ -37,6 +45,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     @x += x
     @y += y
     update
+    return nil
   end
 
   def mousedown(button)
@@ -44,6 +53,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     return if @buttonmask & button != 0
     @buttonmask |= button
     update
+    return nil
   end
 
   def mouseup(button)
@@ -51,6 +61,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     return if @buttonmask & button == 0
     @buttonmask &= (~button)
     update
+    return nil
   end
 
   class VNCClient < EventMachine::Connection
