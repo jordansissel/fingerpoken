@@ -38,8 +38,11 @@ What you need to run it:
 
 Run it:
   * xdo (X11): fingerpoken.rb -t xdo:///
-  * vnc: fingerpoken.rb -t vnc:///  # no user/auth/host target yet, hack the source :(
-  * tivo: fingerpoken.rb -t tivo://yourtivoip
+  * vnc: fingerpoken.rb -t vnc:///password@host:port/
+    - password is optional
+    - port defaults to 5900
+  * tivo: fingerpoken.rb -t tivo://yourtivoip:port
+    - default port is 31339
 
 Notes:
   * TiVo control requires the mouse mode be 'vector' (tap on 'config' to change this)
