@@ -33,9 +33,11 @@
       action = request["action"];
       switch (action) {
         case "status":
-          //$("#area").html("<h1 class='status'>" + request["status"] + "</h1>");
           /* Use eval to do unicode escaping */
-          $("#area").html("<h1 class='status'>" + eval("\"" + request["status"] + "\"") + "</h1>");
+          var status = eval("\"" + request["status"] + "\"");
+          var el = $("<h1 class='status'>" + status + "</h1>");
+          $("#area").empty().append(el);
+          el.delay(500).fadeOut(500, function() { $(this).remove() });
           break;
       }
     };
@@ -258,8 +260,10 @@
           state.last_click = (new Date()).getTime();
         }
       }
-      state.moving = false;
-      state.scrolling = false;
+      if (touches.length == 0) {
+        state.moving = false;
+        state.scrolling = false;
+      }
       event.preventDefault();
     }).bind("touchmove", function(event) { /* $("#touchpadsurface").bind("touchmove" ... */
       var e = event.originalEvent;
