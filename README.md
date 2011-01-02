@@ -1,4 +1,4 @@
-# fingerpoken - use your iphone/ipad as a mouse and remote
+# fingerpoken - use your browser (iphone/ipad/laptop) as a mouse and remote
 
 ![fingerpoken main screen](http://farm6.static.flickr.com/5209/5315764134_fd91969a2c_m.jpg "fingerpoken main touch screen")
 
