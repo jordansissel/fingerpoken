@@ -9,10 +9,40 @@ fingerpoken is a web-based touchpad tool. No extra software is required on your 
 There is also a server-side component that serves the web interface and acts on
 commands sent from that web interface.
 
+## Short Intro
+
+### Get it
+
+    gem install fingerpoken
+
+### Run it
+
+    # X11:
+    fingerpoken.rb -t xdo:///
+
+    # VNC
+    fingerpoken.rb -t vnc://mysecret@some.workstation.local/
+
+    # TiVo
+    fingerpoken.rb -t tivo://192.168.0.39/
+
+### Use it
+
+Point your iphone, itouch, or another computer's browser at:
+
+    http://yourserver:5000/
+
+Touch away!
+
 ## Video demos: 
 
 * Mouse control: [http://www.youtube.com/watch?v=39PtZoxW_fM](http://www.youtube.com/watch?v=39PtZoxW_fM)
 * TiVo control: [http://www.youtube.com/watch?v=2GUkVDrAFbY](http://www.youtube.com/watch?v=2GUkVDrAFbY)
+
+## Supported Platforms
+
+* iOS >=4.2 - iPhone, iPad, iTouch
+* Google Chrome >= 5
 
 ## What works:
 
@@ -66,6 +96,10 @@ server:
 
 ## Run it:
 
+1) Run fingerpoken.rb
+2) Point your iphone browser at http://yourmachine:5000/
+3) Use your phone as a touchpad.
+
   * xdo (X11): fingerpoken.rb -t xdo:///
   * vnc: fingerpoken.rb -t vnc:///password@host:port/
     * password is optional
@@ -79,9 +113,6 @@ Notes:
   * TiVo support also requires you enable the network remote control on your TiVo.
 
 
-1) Run fingerpoken 
-2) Point your iphone browser at http://yourmachine:5000/
-3) Use your phone as a touchpad.
 
 Optional:
 * Bookmark to home screen. Works from there, too.
