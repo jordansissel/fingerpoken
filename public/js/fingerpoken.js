@@ -2,6 +2,7 @@
   /* TODO(sissel): This could use some serious refactoring. */
 
   $(document).ready(function() {
+    var status = $("#status");
     var keyboard = $('#keyboard');
     var keyboard_button = keyboard.prev('a');
     keyboard.width(keyboard_button.width());
@@ -12,9 +13,13 @@
     keyboard.bind("focus", function() {
       /* move the textarea away so we don't see the caret */
       keyboard.css('margin-left', '-10000px');
+      state.keyboard = true;
+      $(window).triggerHandler("resize");
     });
     keyboard.bind("blur", function(){
       keyboard.css('margin-left', '-' + keyboard_button.width() + 'px');
+      state.keyboard = false;
+      $(window).triggerHandler("resize");
     });
     keyboard.bind("keypress", function(event) {
       var e = event.originalEvent;
@@ -83,7 +88,6 @@
       e.preventDefault();
     });
 
-    var status = $("#status");
     var config = function (key, value, default_value) {
       if (value) {
         status.html("config[" + key + "] = " + value);
@@ -103,7 +107,8 @@
       dragging: false,
       width: window.innerWidth,
       height: window.innerHeight,
-      key: undefined,
+      key: undefined, /* TODO(sissel): unused? */
+      keyboard: false,
       mouse: { },
       scroll: {
         y: 0,
@@ -144,7 +149,6 @@
      * Also, we want to make the content size full height. */
     $(window).bind("orientationchange resize pageshow", function(event) {
       scroll(0, 0);
-      console.log(window.orientation);
 
       var header = $(".header:visible");
       var footer = $(".footer:visible");
@@ -155,6 +159,20 @@
 
       /* Trim margin/border/padding height */
       content_height -= (content.outerHeight() - content.height());
+
+      /* TODO(sissel): Make this special handling only for iphones.
+       * http://developer.apple.com/library/safari/#documentation/appleapplications/reference/safariwebcontent/UsingtheViewport/UsingtheViewport.html
+       */
+      if (state.keyboard) {
+        if (window.orientation == 90 || window.orientation == -90) {
+          content_height -= 162; /* landscape orientation keyboard */
+          content_height -= 32; /* "form assistant" aka FormFill, this height is undocumented. */
+        } else {
+          content_height -= 216; /* portrait orientation keyboard */
+          content_height -= 44; /* "form assistant" aka FormFill */
+        }
+      }
+      status.html("Resize / " + window.orientation + " / " + state.keyboard + " / " + content_height);
       content.height(content_height);
     });
 
