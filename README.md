@@ -52,9 +52,11 @@ Options set in the UI will persist across sessions using HTML5 localStorage.
 ## What you need to run it:
 
 client:
+
   * client: an iphone or ipad running iOS >=4.2 (requires websocket support in safari)
 
 server:
+
   * ruby
   * rubygems: em-websocket, eventmachine, ffi, async_sinatra, json, rack
   * For the xdo target: libxdo (from the xdotool project)
