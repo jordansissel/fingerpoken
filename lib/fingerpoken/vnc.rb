@@ -76,6 +76,10 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     return nil
   end
 
+  # TODO(sissel): Add keyboard support.
+  # VNC uses the same keysym values as X11, so that's a win. We can likely
+  # leverage xdo's char-to-keysym magic with VNC.
+
   class VNCClient < EventMachine::Connection
     include EventMachine::Protocols::VNC::Client
 
