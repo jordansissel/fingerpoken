@@ -381,6 +381,14 @@
             rel_x: delta_x,
             rel_y: delta_y
           }));
+        } else if (movement == "absolute") {
+          /* Send absolute in terms of percentages. */
+          var content = $(".content:visible");
+          state.websocket.send(JSON.stringify({
+            action: "mousemove_absolute",
+            percent_x: x / content.innerWidth(),
+            percent_y: y / content.innerHeight(),
+          }));
         } else if (movement == "vector") {
           if (!state.mouse.vectorTimer) {
             state.mouse.vectorTimer = setInterval(function() {

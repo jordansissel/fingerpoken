@@ -15,6 +15,8 @@ class FingerPoken::Target
       response = case request["action"]
         when "mousemove_relative"
           mousemove_relative(request["rel_x"], request["rel_y"])
+        when "mousemove_absolute"
+          mousemove_absolute(request["percent_x"], request["percent_y"])
         when "move_end"
           move_end()
         when "click"

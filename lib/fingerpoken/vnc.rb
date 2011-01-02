@@ -5,6 +5,8 @@ require "fingerpoken/target"
 class FingerPoken::Target::VNC < FingerPoken::Target
   attr_accessor :x
   attr_accessor :y
+  attr_accessor :screen_x
+  attr_accessor :screen_y
   attr_accessor :buttonmask
 
   def initialize(config)
@@ -48,6 +50,16 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     return nil
   end
 
+  def mousemove_absolute(px, py)
+    # Edges may be hard to hit on some devices, so inflate things a bit.
+    xbuf = @screen_x * 0.1
+    ybuf = @screen_y * 0.1
+    @x = (((@screen_x + xbuf) * px) - (xbuf / 2)).to_i
+    @y = (((@screen_y + ybuf) * py) - (ybuf / 2)).to_i
+    update
+    return nil
+  end
+
   def mousedown(button)
     button = (1 << (button.to_i - 1))
     return if @buttonmask & button != 0
@@ -72,10 +84,12 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     end
     
     def ready
-      @target.register
+      @target.screen_x = @screen_width
+      @target.screen_y = @screen_height
+      @target.buttonmask = 0
       @target.x = (@screen_width / 2).to_i
       @target.y = (@screen_height / 2).to_i
-      @target.buttonmask = 0
+      @target.register
     end
   end # class VNCClient
 end
