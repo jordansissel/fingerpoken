@@ -9,6 +9,11 @@ fingerpoken is a web-based touchpad tool. No extra software is required on your 
 There is also a server-side component that serves the web interface and acts on
 commands sent from that web interface.
 
+## Video demos: 
+
+* Mouse control: [http://www.youtube.com/watch?v=39PtZoxW_fM](http://www.youtube.com/watch?v=39PtZoxW_fM)
+* TiVo control: [http://www.youtube.com/watch?v=2GUkVDrAFbY](http://www.youtube.com/watch?v=2GUkVDrAFbY)
+
 ## Short Intro
 
 ### Get it
@@ -33,11 +38,6 @@ Point your iphone, itouch, or another computer's browser at:
     http://yourserver:5000/
 
 Touch away!
-
-## Video demos: 
-
-* Mouse control: [http://www.youtube.com/watch?v=39PtZoxW_fM](http://www.youtube.com/watch?v=39PtZoxW_fM)
-* TiVo control: [http://www.youtube.com/watch?v=2GUkVDrAFbY](http://www.youtube.com/watch?v=2GUkVDrAFbY)
 
 ## Supported Platforms
 
