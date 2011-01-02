@@ -1,6 +1,6 @@
 # fingerpoken - use your iphone/ipad as a mouse and remote
 
-![fingerpoken main screen](http://farm6.static.flickr.com/5209/5315764134_4dc440e4c7_o.png "fingerpoken main touch screen")
+![fingerpoken main screen](http://farm6.static.flickr.com/5209/5315764134_fd91969a2c_m.jpg "fingerpoken main touch screen")
 
 ## Video demos: 
 
