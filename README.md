@@ -4,8 +4,8 @@
 
 ## Video demos: 
 
-* Mouse control: http://www.youtube.com/watch?v=39PtZoxW_fM
-* TiVo control: http://www.youtube.com/watch?v=2GUkVDrAFbY
+* Mouse control: [http://www.youtube.com/watch?v=39PtZoxW_fM]
+* TiVo control: [http://www.youtube.com/watch?v=2GUkVDrAFbY]
 
 ## What works:
 
