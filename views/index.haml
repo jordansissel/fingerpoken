@@ -24,11 +24,13 @@
         %a{:href => "javascript:window.location.reload()", "data-role" => "button", "data-inline" => true} Reload
       %div.content{"data-role" => "content"}
         #area
-          /%pre#status
+          %pre#status
 
       %div.footer{"data-role" => "footer"}
         %span.left
           %a{:href => "#commands", "data-role" => "button", "data-rel" => "dialog", "data-transition" => "pop"} Commands
+          %a{:href => "#keyboard", "data-role" => "button", "data-action" => "keyboard"} Keyboard
+          %textarea#keyboard
         %span.right
           %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "1"} Left
           %a.command{:href => "#", "data-role" => "button", "data-action" => "click", "data-button" => "3"} Right

@@ -2,6 +2,84 @@
   /* TODO(sissel): This could use some serious refactoring. */
 
   $(document).ready(function() {
+
+    var keyboard = $('#keyboard');
+    var keyboard_button = keyboard.prev('a');
+    keyboard.width(keyboard_button.width());
+    keyboard.height(keyboard_button.height());
+    keyboard.css('margin-left', '-' + keyboard_button.width() + 'px');
+    keyboard.show();
+
+    keyboard.bind("focus", function() {
+      /* move the textarea away so we don't see the caret */
+      keyboard.css('margin-left', '-10000px');
+    });
+    keyboard.bind("blur", function(){
+      keyboard.css('margin-left', '-' + keyboard_button.width() + 'px');
+    });
+    keyboard.bind("keypress", function(event) {
+      var e = event.originalEvent;
+      var key = e.charCode;
+      console.log(key);
+      if (!key) {
+        key = (e.keyCode ? e.keyCode : e.which);
+      }
+      state.websocket.send(JSON.stringify({ 
+        action: "log",
+        shift: e.shiftKey,
+        char: e.charCode,
+        ctrl: e.ctrlKey,
+        meta: e.ctrlKey,
+      }));
+      state.websocket.send(JSON.stringify({ 
+        action: "keypress",
+        key: key,
+        shift: e.shiftKey,
+      }));
+
+      e.preventDefault();
+    }).bind("change", function(event) {
+      /* Skip empty changes */
+      if (keyboard.val() == "") {
+        return;
+      }
+
+      state.websocket.send(JSON.stringify({ 
+        action: "type",
+        string: keyboard.val(),
+      }));
+
+      /* Clear the field */
+      keyboard.val("");
+    });
+
+    keyboard.bind("keyup", function(event) {
+      var e = event.originalEvent;
+      state.websocket.send(JSON.stringify({ 
+        action: "log",
+        shift: e.shiftKey,
+        char: e.charCode,
+        key: e.which,
+        ctrl: e.ctrlKey,
+        meta: e.ctrlKey,
+      }));
+
+      console.log(key);
+      var key = (e.keyCode ? e.keyCode : e.which);
+      if (key >= 32 && key <= 127) {
+        /* skip printable keys (a-z, etc) */
+        return;
+      }
+
+      state.websocket.send(JSON.stringify({ 
+        action: "keypress",
+        key: key,
+        shift: e.shiftKey,
+      }));
+
+      e.preventDefault();
+    });
+
     var status = $("#status");
     var config = function (key, value, default_value) {
       if (value) {
@@ -171,83 +249,6 @@
           }
 
           status.html(r);
-          if (r > 75 && r < 105) {
-            /* Activate the keyboard when there's a ~90-degree rotation*/
-            var keyboard = $("<textarea id='keyboard' rows='10'></textarea>");
-            keyboard.css("width", "100%");
-            keyboard.css("height", "100%");
-            status.html("");
-            keyboard.appendTo(status).focus();
-            keyboard.bind("keypress", function(event) {
-              var e = event.originalEvent;
-              var key = e.charCode;
-              console.log(key);
-              if (!key) {
-                key = (e.keyCode ? e.keyCode : e.which);
-              }
-              state.websocket.send(JSON.stringify({ 
-                action: "log",
-                shift: e.shiftKey,
-                char: e.charCode,
-                ctrl: e.ctrlKey,
-                meta: e.ctrlKey,
-              }));
-              state.websocket.send(JSON.stringify({ 
-                action: "keypress",
-                key: key,
-                shift: e.shiftKey,
-              }));
-
-              e.preventDefault();
-            }).bind("change", function(event) {
-              /* Skip empty changes */
-              if (keyboard.val() == "") {
-                return;
-              }
-
-              state.websocket.send(JSON.stringify({ 
-                action: "type",
-                string: keyboard.val(),
-              }));
-
-              /* Clear the field */
-              keyboard.val("");
-            });
-
-            keyboard.bind("keyup", function(event) {
-              var e = event.originalEvent;
-              state.websocket.send(JSON.stringify({ 
-                action: "log",
-                shift: e.shiftKey,
-                char: e.charCode,
-                key: e.which,
-                ctrl: e.ctrlKey,
-                meta: e.ctrlKey,
-              }));
-
-              console.log(key);
-              var key = (e.keyCode ? e.keyCode : e.which);
-              if (key >= 32 && key <= 127) {
-                /* skip printable keys (a-z, etc) */
-                return;
-              }
-
-              state.websocket.send(JSON.stringify({ 
-                action: "keypress",
-                key: key,
-                shift: e.shiftKey,
-              }));
-
-              e.preventDefault();
-            });
-            //status.html("<textarea id='keyboard'></textarea>");
-            //$("#keyboard").focus();
-          } else { /* Otherwise, we didn't rotate */
-            state.websocket.send(JSON.stringify({ 
-              action: "move_end",
-              now: (new Date()),
-            }));
-          }
         } else if (state.scrolling) {
           /* nothing for now */
         } else {
