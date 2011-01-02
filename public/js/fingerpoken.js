@@ -7,6 +7,7 @@
     var keyboard_button = keyboard.prev('a');
     keyboard.width(keyboard_button.width());
     keyboard.height(keyboard_button.height());
+    /* TODO(sissel): get the computed width (margin, padding, width) */
     keyboard.css('margin-left', '-' + keyboard_button.width() + 'px');
     keyboard.show();
 
@@ -24,7 +25,6 @@
     keyboard.bind("keypress", function(event) {
       var e = event.originalEvent;
       var key = e.charCode;
-      console.log(key);
       if (!key) {
         key = (e.keyCode ? e.keyCode : e.which);
       }
@@ -44,7 +44,7 @@
       /* Only prevent default if we're not backspace,
        * this lets 'backspace' do keyrepeat. */
       if (key != 8) { 
-        e.preventDefault();
+        event.preventDefault();
       }
     }).bind("change", function(event) {
       /* Skip empty changes */
@@ -72,7 +72,6 @@
         meta: e.ctrlKey,
       }));
 
-      console.log(key);
       var key = (e.keyCode ? e.keyCode : e.which);
       if (key >= 32 && key <= 127) {
         /* skip printable keys (a-z, etc) */
@@ -85,7 +84,7 @@
         shift: e.shiftKey,
       }));
 
-      e.preventDefault();
+      event.preventDefault();
     });
 
     var config = function (key, value, default_value) {
@@ -109,6 +108,7 @@
       height: window.innerHeight,
       key: undefined, /* TODO(sissel): unused? */
       keyboard: false,
+      touchpad_active: false,
       mouse: { },
       scroll: {
         y: 0,
@@ -141,7 +141,6 @@
     $("input[name = \"mouse-acceleration\"]")
       .bind("change", function(event) {
         config("fingerpoken/mouse/acceleration", parseInt(event.target.value));
-        //status.html(event.target.value);
       }).val(config("fingerpoken/mouse/acceleration")).change();
 
     /* Changing orientation sometimes leaves the viewport
@@ -220,11 +219,11 @@
     
 
     /* TODO(sissel): add mousedown/mousemove/mouseup support */
-    console.log($("#touchpad-surface"));
-    $("#area").bind("touchstart", function(event) {
-      event.preventDefault();
+    $("#area").bind("touchstart mousedown", function(event) {
       var e = event.originalEvent;
-      var touches = e.touches;
+      state.touchpad_active = true;
+      /* if no 'touches', use the event itself, one finger/mouse */
+      var touches = e.touches || [ e ];
       var output = "Start: " + touches[0].clientX + "," + touches[0].clientY + "\n";
       output += "Fingers: " + touches.length + "\n";
       status.html(output);
@@ -246,9 +245,10 @@
         }))
         state.dragging = true;
       }
-    }).bind("touchend", function(event) { /* $("#touchpadsurface").bind("touchend" ...  */
+      event.preventDefault();
+    }).bind("touchend mouseup", function(event) { /* $("#touchpadsurface").bind("touchend" ...  */
       var e = event.originalEvent;
-      var touches = e.touches;
+      var touches = e.touches || [ e ];
 
       if (state.mouse.vectorTimer) {
         clearInterval(state.mouse.vectorTimer);
@@ -282,15 +282,21 @@
           state.last_click = (new Date()).getTime();
         }
       }
-      if (touches.length == 0) {
+      if (touches.length == 0 || !e.touches) {
         state.moving = false;
         state.scrolling = false;
+        state.touchpad_active = false;
       }
       event.preventDefault();
-    }).bind("touchmove", function(event) { /* $("#touchpadsurface").bind("touchmove" ... */
+    }).bind("touchmove mousemove", function(event) { /* $("#touchpadsurface").bind("touchmove" ... */
       var e = event.originalEvent;
-      var touches = e.touches;
-      event.preventDefault();
+      var touches = e.touches || [ e ];
+
+      //if (!state.touchpad_active) {
+        //event.preventDefault();
+        //return;
+      //}
+
       if (!state.moving) {
         /* Start calculating delta offsets now */
         state.moving = true;
@@ -370,7 +376,6 @@
         /* TODO(sissel): Refactor these in to fumctions */
         var movement = config("fingerpoken/mouse/movement");
         if (movement == "relative") {
-          status.html(output);
           state.websocket.send(JSON.stringify({
             action: "mousemove_relative",
             rel_x: delta_x,
@@ -393,7 +398,6 @@
               rx = Math.ceil(Math.pow(Math.abs(rx), vector_accel) * sign_rx);
               ry = Math.ceil(Math.pow(Math.abs(ry), vector_accel) * sign_ry);
               output += "rx2,ry2 = " + rx + ", " + ry + "\n"; 
-              status.html(output)
 
               state.websocket.send(JSON.stringify({
                 action: "mousemove_relative",
@@ -403,6 +407,7 @@
             }, 15);
           } /* if (!state.mouse.vectorTimer) */
         } /* mouse vector movement */
+        status.html(output)
       } /* finger movement */
     }); /*  $("#touchpadsurface").bind( ... )*/
 

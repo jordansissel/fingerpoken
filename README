@@ -10,12 +10,12 @@ What works:
 * two-finger drag up/down scrolls
 * double tap clicks twice, etc.
 * tap-drag works like you might expect (select text, etc).
-* arbitrary keyboard input (do a 90-degree clockwise rotation with two fingers,
-click on the text area that pops up)
+* arbitrary keyboard input (press the 'keyboard' button)
 
 Configuring the UI:
 * The 'config' button lets you change a few things:
-  * 'mouse movement' can be relative (normal touchpad), absolute (not supported yet), and vector (start-point + current-point == mouse direction and speed)
+  * 'mouse movement' can be relative (normal touchpad), absolute (not supported
+    yet), and vector (start-point + current-point == mouse direction and speed)
   * You can change the mouse sensitivity.
 
 Options set in the UI will persist across sessions using HTML5 localStorage.
@@ -24,6 +24,9 @@ What's planned:
 * security (https, authentication)
 * many other things.
 * Better PC-as-a-client support (mousemovement, clicking, etc)
+
+TODO:
+* special keystroke input (control/shift/alt, function keys, page up/down, etc)
 
 What you need to run it:
   client:
