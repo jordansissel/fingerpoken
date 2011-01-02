@@ -2,7 +2,6 @@
   /* TODO(sissel): This could use some serious refactoring. */
 
   $(document).ready(function() {
-
     var keyboard = $('#keyboard');
     var keyboard_button = keyboard.prev('a');
     keyboard.width(keyboard_button.width());
@@ -37,7 +36,11 @@
         shift: e.shiftKey,
       }));
 
-      e.preventDefault();
+      /* Only prevent default if we're not backspace,
+       * this lets 'backspace' do keyrepeat. */
+      if (key != 8) { 
+        e.preventDefault();
+      }
     }).bind("change", function(event) {
       /* Skip empty changes */
       if (keyboard.val() == "") {
