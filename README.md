@@ -2,6 +2,13 @@
 
 ![fingerpoken main screen](http://farm6.static.flickr.com/5209/5315764134_fd91969a2c_m.jpg "fingerpoken main touch screen")
 
+## What?
+
+fingerpoken is a web-based touchpad tool. No extra software is required on your ipad/itouch/iphone, just Safari.
+
+There is also a server-side component that serves the web interface and acts on
+commands sent from that web interface.
+
 ## Video demos: 
 
 * Mouse control: [http://www.youtube.com/watch?v=39PtZoxW_fM](http://www.youtube.com/watch?v=39PtZoxW_fM)
