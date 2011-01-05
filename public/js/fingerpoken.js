@@ -275,6 +275,7 @@
         } else {
           /* No movement, click! */
           status.html("Click!");
+          console.log("click");
           state.websocket.send(JSON.stringify({ 
             action: "click",
             button: state.button,

@@ -64,6 +64,7 @@ def main(args)
     targets.each do |klass, args|
       args.merge!({ :channel => channel })
       target = FingerPoken::Target.const_get(klass).new(args)
+
       target.register
     end # targets.each
 

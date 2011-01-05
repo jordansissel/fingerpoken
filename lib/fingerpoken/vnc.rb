@@ -16,6 +16,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     @password = (config[:password] or config[:user])
     @host = config[:host]
     @port = (config[:port] or 5900)
+    @ready = false
     @recenter = config[:recenter]
 
     # For eventmachine-vnc
@@ -32,6 +33,10 @@ class FingerPoken::Target::VNC < FingerPoken::Target
   end
 
   def update
+    if !@ready
+      @logger.warn("VNC connection is not ready. Ignoring update.")
+      return { "action" => "status", "status" => "VNC connection not ready, yet" }
+    end
     @vnc.pointerevent(@x, @y, @buttonmask)
 
     # TODO(sissel): Hack to make it work in TF2.
@@ -41,6 +46,11 @@ class FingerPoken::Target::VNC < FingerPoken::Target
       @x = (@vnc.screen_width / 2).to_i
       @y = (@vnc.screen_height / 2).to_i
     end
+  end
+
+  def ready
+    @ready = true
+    return { "action" => "status", "status" => "VNC READY!" }
   end
 
   def mousemove_relative(x, y)
@@ -93,7 +103,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
       @target.buttonmask = 0
       @target.x = (@screen_width / 2).to_i
       @target.y = (@screen_height / 2).to_i
-      @target.register
+      @target.ready()
     end
   end # class VNCClient
 end

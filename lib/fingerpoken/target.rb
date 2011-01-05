@@ -8,10 +8,17 @@ class FingerPoken::Target
   end
 
   def register
+    if @registered
+      @logger.warn("Ignoring extra call to #{self.class.name}#register. Trace:\n#{caller[0..3].join("\n")}")
+      return
+    end
+
+    @registered = true
+    @logger.debug(:register => self.class.name)
     @channel.subscribe do |obj|
       request = obj[:request]
       callback = obj[:callback]
-      @logger.debug(request)
+      @logger.debug(:request => request)
       response = case request["action"]
         when "mousemove_relative"
           mousemove_relative(request["rel_x"], request["rel_y"])
@@ -36,8 +43,8 @@ class FingerPoken::Target
       if response.is_a?(Hash)
         callback.call(response)
       end
-    end
-  end
+    end # @channel.subscribe
+  end # def register
 
   # Subclasses should implement this.
   def mousemove_relative(x, y)
