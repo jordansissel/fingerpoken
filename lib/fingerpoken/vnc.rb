@@ -32,7 +32,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     @buttonmask = 0
   end
 
-  def update
+  def update_mouse
     if !@ready
       @logger.warn("VNC connection is not ready. Ignoring update.")
       return { "action" => "status", "status" => "VNC connection not ready, yet" }
@@ -56,7 +56,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
   def mousemove_relative(x, y)
     @x += x
     @y += y
-    update
+    update_mouse
     return nil
   end
 
@@ -66,7 +66,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     ybuf = @screen_y * 0.1
     @x = (((@screen_x + xbuf) * px) - (xbuf / 2)).to_i
     @y = (((@screen_y + ybuf) * py) - (ybuf / 2)).to_i
-    update
+    update_mouse
     return nil
   end
 
@@ -74,7 +74,7 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     button = (1 << (button.to_i - 1))
     return if @buttonmask & button != 0
     @buttonmask |= button
-    update
+    update_mouse
     return nil
   end
 
@@ -82,13 +82,46 @@ class FingerPoken::Target::VNC < FingerPoken::Target
     button = (1 << (button.to_i - 1))
     return if @buttonmask & button == 0
     @buttonmask &= (~button)
-    update
+    update_mouse
     return nil
   end
 
   # TODO(sissel): Add keyboard support.
   # VNC uses the same keysym values as X11, so that's a win. We can likely
   # leverage xdo's char-to-keysym magic with VNC.
+  def keypress(key)
+    puts "Got key: #{key} (#{key.class})"
+    if key.is_a?(String)
+      if key.length == 1
+        # Assume letter
+        @vnc.keyevent(key.chr, true)
+        @vnc.keyevent(key.chr, false)
+      else
+        # Assume keysym
+        puts "I don't know how to type '#{key}'"
+        return { :action => "status", :status => "I don't know how to type '#{key}'" }
+      end
+    else
+      # type printables, key others.
+      if 32.upto(127).include?(key)
+        @vnc.keyevent(key, true)
+        @vnc.keyevent(key, false)
+      else
+        case key
+          when 8 
+            @vnc.keyevent(0xff08, true)
+            @vnc.keyevent(0xff08, false)
+          when 13
+            @vnc.keyevent(0xff0D, true)
+            @vnc.keyevent(0xff0D, false)
+          else
+            puts "I don't know how to type web keycode '#{key}'"
+            return { :action => "status", :status => "I don't know how to type '#{key}'" }
+          end # case key
+      end # if 32.upto(127).include?(key)
+    end # if key.is_a?String
+    return nil
+  end # def keypress
 
   class VNCClient < EventMachine::Connection
     include EventMachine::Protocols::VNC::Client
