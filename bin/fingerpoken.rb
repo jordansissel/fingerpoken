@@ -28,6 +28,8 @@ end
 
 def main(args)
   targets = []
+  passphrase = nil
+
   opts = OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options]"
 
@@ -49,6 +51,10 @@ def main(args)
         targets << [:Tivo, { :host => target.host }]
       end
     end
+
+    opts.on("--passphrase PASSPHRASE", "Passphrase for verifying client calls") do |val|
+      passphrase = val
+    end
   end
   opts.parse(args)
 
@@ -62,7 +68,7 @@ def main(args)
     channel = EventMachine::Channel.new
 
     targets.each do |klass, args|
-      args.merge!({ :channel => channel })
+      args.merge!({ :channel => channel, :passphrase => passphrase })
       target = FingerPoken::Target.const_get(klass).new(args)
 
       target.register
@@ -85,4 +91,4 @@ def main(args)
   end # EventMachine::run
 end
 
-exit(main(ARGV))
+main(ARGV)

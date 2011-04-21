@@ -1,11 +1,43 @@
+require "rubygems"
 require "logger"
+require "hmac-md5"
 
 class FingerPoken::Target
   def initialize(config)
     @channel = config[:channel]
     @logger = Logger.new(STDERR)
     @logger.level = ($DEBUG ? Logger::DEBUG: Logger::WARN)
+    @passphrase = config[:passphrase] # OK if this is nil
+
+    @last_sequence = -1
   end
+
+  def verify(request, callback)
+    if !request["signature"]
+      # TODO(sissel): Send callback saying "passphrase required"
+      @logger.warn("Message with no signature")
+      return false
+    end
+
+    if request["sequence"] < @last_sequence
+      # Reject out of sequence or replayed messages
+      # TODO(sissel): Report replay attack detected
+      @logger.warn("Sequence #{request["sequence"]} < #{@last_sequence} "\
+                   "(last sequence). Replay attack or bug?")
+      return false
+    end
+
+    hmac = HMAC::MD5.new(@passphrase)
+    hmac.update(request["sequence"].to_s)
+    digest_bytes = hmac.digest.bytes.to_a
+    if request["signature"] == digest_bytes
+      return true
+    else
+      # TODO(sissel): Report verification failed
+      @logger.warn("Signature verify failed. Server:#{digest_bytes.inspect}, Client:#{request["signature"].inspect}")
+      return false
+    end
+  end # def verify
 
   def register
     if @registered
@@ -19,6 +51,17 @@ class FingerPoken::Target
       request = obj[:request]
       callback = obj[:callback]
       @logger.debug(:request => request)
+
+      if @passphrase
+        verified = verify(request, callback)
+        if !verified
+          @logger.warn("Dropping corrupt/forged request")
+          next
+        end
+      end
+
+      @last_sequence = request["sequence"].to_i
+
       response = case request["action"]
         when "mousemove_relative"
           mousemove_relative(request["rel_x"], request["rel_y"])

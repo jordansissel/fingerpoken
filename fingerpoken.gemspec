@@ -11,9 +11,13 @@ Gem::Specification.new do |spec|
   spec.version = "0.2.#{rev}"
   spec.summary = "fingerpoken - turns your ipad/itouch/iphone into a remote touchpad, keyboard, etc"
   spec.description = "fingerpoken - turns your ipad/itouch/iphone into a remote touchpad, keyboard, etc"
-  spec.add_dependency("eventmachine-vnc")
   spec.add_dependency("ffi")
+  spec.add_dependency("ruby-hmac")
   spec.add_dependency("eventmachine")
+  spec.add_dependency("em-websocket")
+  spec.add_dependency("async_sinatra")
+  spec.add_dependency("haml")
+  spec.add_dependency("eventmachine-vnc")
   spec.files = files
   spec.require_paths << "lib"
   spec.bindir = "bin"
