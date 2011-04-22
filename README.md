@@ -68,9 +68,25 @@ Touch away!
 
 Options set in the UI will persist across sessions using HTML5 localStorage.
 
+## Securing Fingerpoken
+
+iPhone's 'secure websocket' support sucks, so I don't use that.
+
+Instead, I use HMAC-MD5 to sign requests to the server. This requires a pre-shared key between your client and server.
+
+Server: fingerpoken --passphrase "my passphrase"
+
+Client: go into 'config' and enter the same passphrase.
+
+To prevent replay attacks, part of the signature includes a sequence number.
+The server will reject any messages with a sequence number less than the
+previous one.
+
+Note: This is only message signing to resist replay attacks and unauthorized
+control of fingerpoken server. It is not encryption.
+
 ## What's planned:
 
-* security (https, authentication)
 * many other things.
 * Better PC-as-a-client support (mousemovement, clicking, etc)
 * Got suggestions? 
@@ -115,4 +131,5 @@ Notes:
 
 
 Optional:
-* Bookmark to home screen. Works from there, too.
+
+  * Bookmark to home screen. Works from there, too.
