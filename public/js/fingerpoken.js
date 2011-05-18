@@ -31,7 +31,9 @@
   };
 
   Fingerpoken.prototype.send = function(obj) {
-    this.sign(obj);
+    if (this.config("fingerpoken/passphrase")) {
+      this.sign(obj);
+    }
     this.websocket.send(JSON.stringify(obj))
   };
 
