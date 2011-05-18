@@ -15,6 +15,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency("eventmachine")
   spec.add_dependency("em-websocket")
   spec.add_dependency("async_sinatra")
+  spec.add_dependency("json")
+  spec.add_dependency("thin")
   spec.add_dependency("haml")
   spec.add_dependency("eventmachine-vnc")
   spec.files = files
