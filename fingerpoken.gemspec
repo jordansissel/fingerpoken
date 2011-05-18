@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
 
   #svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
   spec.name = "fingerpoken"
-  spec.version = "0.3.0"
+  spec.version = "0.3.1"
   spec.summary = "fingerpoken - turns your ipad/itouch/iphone into a remote touchpad, keyboard, etc"
   spec.description = "fingerpoken - turns your ipad/itouch/iphone into a remote touchpad, keyboard, etc"
   spec.add_dependency("ffi")
