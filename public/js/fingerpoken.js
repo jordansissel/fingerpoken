@@ -115,18 +115,18 @@
       if (!key) {
         key = (e.keyCode ? e.keyCode : e.which);
       }
-      fingerpoken.send(JSON.stringify({ 
+      fingerpoken.send({
         action: "log",
         shift: e.shiftKey,
         char: e.charCode,
         ctrl: e.ctrlKey,
         meta: e.ctrlKey,
-      }));
-      fingerpoken.send(JSON.stringify({ 
+      });
+      fingerpoken.send({ 
         action: "keypress",
         key: key,
         shift: e.shiftKey,
-      }));
+      });
 
       /* Only prevent default if we're not backspace,
        * this lets 'backspace' do keyrepeat. */
@@ -139,10 +139,10 @@
         return;
       }
 
-      fingerpoken.send(JSON.stringify({ 
+      fingerpoken.send({ 
         action: "type",
         string: keyboard.val(),
-      }));
+      });
 
       /* Clear the field */
       keyboard.val("");
@@ -150,14 +150,14 @@
 
     keyboard.bind("keyup", function(event) {
       var e = event.originalEvent;
-      fingerpoken.send(JSON.stringify({ 
+      fingerpoken.send({ 
         action: "log",
         shift: e.shiftKey,
         char: e.charCode,
         key: e.which,
         ctrl: e.ctrlKey,
         meta: e.ctrlKey,
-      }));
+      });
 
       var key = (e.keyCode ? e.keyCode : e.which);
       if (key >= 32 && key <= 127) {
@@ -165,11 +165,11 @@
         return;
       }
 
-      fingerpoken.send(JSON.stringify({ 
+      fingerpoken.send({ 
         action: "keypress",
         key: key,
         shift: e.shiftKey,
-      }));
+      });
 
       event.preventDefault();
     });
