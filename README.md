@@ -44,6 +44,11 @@ Touch away!
 * iOS >=4.2 - iPhone, iPad, iTouch
 * Google Chrome >= 5
 
+## Probably Unsuppored Platforms
+
+* Palm-Pre/WebOS - no websockets, no touch events (maybe?)
+* Android 2.2 - touch events don't work, websockets may not either.
+
 ## What works:
 
 * dragging a finger moves the mouse.
