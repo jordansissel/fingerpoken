@@ -12,7 +12,7 @@ class FingerPoken < Sinatra::Base
   register Sinatra::Async
   set :haml, :format => :html5
   set :logging, true
-  set :public, "#{File.dirname(__FILE__)}/../public"
+  set :public_folder, "#{File.dirname(__FILE__)}/../public"
   set :views, "#{File.dirname(__FILE__)}/../views"
 
   aget '/' do
