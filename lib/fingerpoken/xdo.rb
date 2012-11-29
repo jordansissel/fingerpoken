@@ -10,15 +10,15 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
     ffi_lib "libxdo.so"
 
     attach_function :xdo_new, [:string], :pointer
-    attach_function :xdo_mousemove, [:pointer, :int, :int, :int], :int
-    attach_function :xdo_mousemove_relative, [:pointer, :int, :int], :int
-    attach_function :xdo_click, [:pointer, :long, :int], :int
-    attach_function :xdo_mousedown, [:pointer, :long, :int], :int
-    attach_function :xdo_mouseup, [:pointer, :long, :int], :int
-    attach_function :xdo_type, [:pointer, :long, :string, :long], :int
-    attach_function :xdo_keysequence, [:pointer, :long, :string, :long], :int
+    attach_function :xdo_move_mouse, [:pointer, :int, :int, :int], :int
+    attach_function :xdo_move_mouse_relative, [:pointer, :int, :int], :int
+    attach_function :xdo_click_window, [:pointer, :long, :int], :int
+    attach_function :xdo_mouse_down, [:pointer, :long, :int], :int
+    attach_function :xdo_mouse_up, [:pointer, :long, :int], :int
+    attach_function :xdo_enter_text_window, [:pointer, :long, :string, :long], :int
+    attach_function :xdo_send_keysequence_window, [:pointer, :long, :string, :long], :int
     attach_function :xdo_get_window_size, [:pointer, :long, :pointer, :pointer], :int
-    attach_function :xdo_window_search, [:pointer, :pointer, :pointer, :pointer], :int
+    attach_function :xdo_search_windows, [:pointer, :pointer, :pointer, :pointer], :int
   end
 
   class XdoSearch < FFI::Struct
@@ -49,7 +49,7 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
     search[:winname].put_string(0, ".*")
     ptr_nwindows = FFI::MemoryPointer.new(:ulong, 1)
     ptr_winlist = FFI::MemoryPointer.new(:pointer, 1)
-    LibXdo::xdo_window_search(@xdo, search, ptr_winlist, ptr_nwindows)
+    LibXdo::xdo_search_windows(@xdo, search, ptr_winlist, ptr_nwindows)
     nwindows = ptr_nwindows.read_long
     @rootwin = ptr_winlist.read_pointer.read_array_of_long(nwindows)[0]
 
@@ -62,7 +62,7 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
   end
 
   def mousemove_relative(x, y)
-    return LibXdo::xdo_mousemove_relative(@xdo, x, y)
+    return LibXdo::xdo_move_mouse_relative(@xdo, x, y)
   end
 
   def mousemove_absolute(px, py)
@@ -72,44 +72,44 @@ class FingerPoken::Target::Xdo < FingerPoken::Target
     x = (((@screen_x + xbuf) * px) - (xbuf / 2)).to_i
     y = (((@screen_y + ybuf) * py) - (ybuf / 2)).to_i
 
-    return LibXdo::xdo_mousemove(@xdo, x, y, 0)
+    return LibXdo::xdo_move_mouse(@xdo, x, y, 0)
   end
 
   def click(button)
-    return LibXdo::xdo_click(@xdo, 0, button.to_i)
+    return LibXdo::xdo_click_window(@xdo, 0, button.to_i)
   end
 
   def mousedown(button)
-    return LibXdo::xdo_mousedown(@xdo, 0, button.to_i)
+    return LibXdo::xdo_mouse_down(@xdo, 0, button.to_i)
   end
 
   def mouseup(button)
-    return LibXdo::xdo_mouseup(@xdo, 0, button.to_i)
+    return LibXdo::xdo_mouse_up(@xdo, 0, button.to_i)
   end
 
   def type(string)
-    return LibXdo::xdo_type(@xdo, 0, string, 12000)
+    return LibXdo::xdo_enter_text_window(@xdo, 0, string, 12000)
   end
 
   def keypress(key)
     if key.is_a?(String)
       if key.length == 1
         # Assume letter
-        LibXdo::xdo_type(@xdo, 0, key, 12000)
+        LibXdo::xdo_enter_text_window(@xdo, 0, key, 12000)
       else
         # Assume keysym
-        LibXdo::xdo_keysequence(@xdo, 0, key, 12000)
+        LibXdo::xdo_send_keysequence_window(@xdo, 0, key, 12000)
       end
     else
       # type printables, key others.
       if 32.upto(127).include?(key)
-        LibXdo::xdo_type(@xdo, 0, key.chr, 12000)
+        LibXdo::xdo_enter_text_window(@xdo, 0, key.chr, 12000)
       else
         case key
           when 8 
-            LibXdo::xdo_keysequence(@xdo, 0, "BackSpace", 12000)
+            LibXdo::xdo_send_keysequence_window(@xdo, 0, "BackSpace", 12000)
           when 13
-            LibXdo::xdo_keysequence(@xdo, 0, "Return", 12000)
+            LibXdo::xdo_send_keysequence_window(@xdo, 0, "Return", 12000)
           else
             puts "I don't know how to type web keycode '#{key}'"
           end # case key
