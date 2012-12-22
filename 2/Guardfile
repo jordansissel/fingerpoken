@@ -1,0 +1,5 @@
+guard 'shell' do
+  watch(/(^.*\.jade$)/) {|m| `jade #{m[1]}`  }
+  watch(/(^.*\.coffee$)/) {|m| `coffee -c #{m[1]}`  }
+end
+
