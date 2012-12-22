@@ -1,8 +1,6 @@
 line_length = (start, end) ->
   return Math.sqrt(
-    Math.pow(start[0] - end[0], 2) # x coordinate
-    +
-    Math.pow(start[1] - end[1], 2) # y coordinate
+    Math.pow(start[0] - end[0], 2.0) + Math.pow(start[1] - end[1], 2.0)
   )
 
 class WSLogger
@@ -75,7 +73,7 @@ class Controller
     distance = line_length(f1, @lastf1)
     d3.select(@canvas).select("#finger")
       .attr("cx", touches[0][0]).attr("cy", touches[0][1])
-    @log("Distance: " + distance)
+    @log("Distance: " + distance + " ---> " + f1 + " <=> " + @lastf1)
     @lastf1 = f1
 
   click: (event) ->

@@ -3,7 +3,7 @@
   var Controller, WSLogger, line_length;
 
   line_length = function(start, end) {
-    return Math.sqrt(Math.pow(start[0] - end[0], 2), +Math.pow(start[1] - end[1], 2));
+    return Math.sqrt(Math.pow(start[0] - end[0], 2.0) + Math.pow(start[1] - end[1], 2.0));
   };
 
   WSLogger = (function() {
@@ -100,7 +100,7 @@
       f1 = touches[0];
       distance = line_length(f1, this.lastf1);
       d3.select(this.canvas).select("#finger").attr("cx", touches[0][0]).attr("cy", touches[0][1]);
-      this.log("Distance: " + distance);
+      this.log("Distance: " + distance + " ---> " + f1 + " <=> " + this.lastf1);
       return this.lastf1 = f1;
     };
 
