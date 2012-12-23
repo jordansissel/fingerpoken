@@ -108,7 +108,7 @@ class Controller
       finger.circle.style("opacity", 1)
       finger.circle.transition().duration(500)
         .style("opacity", 0)
-        .attr("r", finger.circle.attr("r") * 1.50)
+        .attr("r", finger.circle.attr("r") * 0.50)
         .remove()
     )
     
