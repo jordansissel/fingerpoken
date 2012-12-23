@@ -5,6 +5,12 @@ window.onerror = (message, url, line) =>
 distance = (x1, y1, x2, y2) ->
   return Math.sqrt(Math.pow(x1 - x2, 2.0) + Math.pow(y1 - y2, 2.0))
 
+angle = (x1, y1, x2, y2) ->
+  # SOHCAHTOA. we compute O and A and use arctan to get the angle.
+  return Math.atan((y1 - y2) / (x1 - x2))
+
+# This is required because iOS reuses TouchEvent objects, it seems,
+# so we copy each value we care about.
 copyTouch = (touch) ->
   return {
     clientX: touch.clientX,
@@ -17,10 +23,14 @@ copyTouch = (touch) ->
     target: touch.target
   }
 
+# A finger!
 class Finger
   constructor: (touch) ->
     @callbacks = {}
     @origin = @touch = copyTouch(touch)
+
+    # How far has this finger moved
+    @travel = 0
 
   trigger: (name, t) ->
     if @callbacks[name]
@@ -29,6 +39,9 @@ class Finger
 
   move: (t) ->
     t.distance = distance(t.pageX, t.pageY, @touch.pageX, @touch.pageY)
+    t.angle = angle(t.pageX, t.pageY, @touch.pageX, @touch.pageY)
+    @travel += t.distance
+    t.travel = @travel
     @touch = copyTouch(t)
     @trigger("move", t)
 
@@ -47,6 +60,9 @@ class Finger
   # Give the distance from the original finger-down.
   origin_distance: () ->
     return distance(@origin.pageX, @origin.pageY, @touch.pageX, @touch.pageY)
+
+  origin_angle: () ->
+    return angle(@origin.pageX, @origin.pageY, @touch.pageX, @touch.pageY)
 
 class Controller
   constructor: (@element) ->
@@ -90,28 +106,42 @@ class Controller
   circle_cursor: (finger) ->
     @palette ||= d3.scale.category10()
     @palette_i ||= 0
+    @palette_i++
+    color = @palette(@palette_i)
 
     circle = d3.select(@canvas).append("circle")
     circle.attr("r", 50)
       .attr("cx", finger.touch.pageX)
       .attr("cy", finger.touch.pageY)
       .attr("stroke", "#000")
-      .attr("fill", @palette(@palette_i))
-    @palette_i++
+      .attr("fill", color)
 
     finger.bind("move", (finger, touch) => 
-      #@log(distance: finger.origin_distance())
-      circle
-        .attr("cx", touch.pageX)
-        .attr("cy", touch.pageY)
+      @log(distance: finger.origin_distance(touch), \
+           angle: finger.origin_angle(touch), \
+           travel: finger.travel)
+      circle.attr("cx", touch.pageX).attr("cy", touch.pageY)
+
+      # drop a tracer
+      d3.select(@canvas).append("circle")
+        .attr("r", "30")
+        .attr("cx", finger.touch.pageX)
+        .attr("cy", finger.touch.pageY)
+        .attr("fill", color)
+        .transition()
+          .duration(500)
+          .attr("r", "0")
+          .remove()
     )
+
     finger.bind("up", (finger, touch) => 
       circle.style("opacity", 1)
       circle.transition().duration(500)
         .style("opacity", 0)
-        .attr("r", finger.circle.attr("r") * 0.50)
+        .attr("r", circle.attr("r") * 0.50)
         .remove()
     )
+
     
 window.addEventListener("load", () -> 
   new Controller(document.querySelector("#controller"))

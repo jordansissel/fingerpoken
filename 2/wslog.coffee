@@ -69,17 +69,19 @@ class WSLogger
         if typeof(value) in safetypes
           event[key] = value 
         else if value == undefined
-          # skip
+          event[key] = null # pretend null
         else if typeof(value) == "function"
-          # skip
+          # skip functions
         else
           try
             # See if we can convert to json, use the object if this succeeds
             JSON.stringify(value)
             event[key] = value
-          catch TypeError
+          catch e
             # JSON conversion failed, use the toString value
             event[key] = value.toString()
+
+    return event
          
 # expose this to the browser.
 window.WSLogger = WSLogger
