@@ -6,9 +6,19 @@
 # Example:
 #
 #   logger = new WSLogger("ws://somehost:12345/")
-#   logger.log({ some: "object" })
+#   logger.log({ some: "object", another: "value", hello: [1,2,3] })
 # 
 # Logs go to 'console.log' as well as the websocket.
+#
+# You should probably also use this to capture javascript exceptions/errors as
+# well. To do so, you will need to use 'window.onerror':
+#
+#     window.onerror = function(message, url, line) {
+#       if (window.$logger === undefined) {
+#         window.$logger = new WSLogger("ws://somehost:12345/")
+#       }
+#       window.$logger.log({ message: message, url: url, line: line })
+#     }
 
 class WSLogger
   constructor: (url) ->
