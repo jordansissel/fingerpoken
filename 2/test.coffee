@@ -90,8 +90,9 @@ class Controller
   circle_cursor: (finger) ->
     @palette ||= d3.scale.category10()
     @palette_i ||= 0
-    finger.circle = d3.select(@canvas).append("circle")
-    finger.circle.attr("r", 50)
+
+    circle = d3.select(@canvas).append("circle")
+    circle.attr("r", 50)
       .attr("cx", finger.touch.pageX)
       .attr("cy", finger.touch.pageY)
       .attr("stroke", "#000")
@@ -100,13 +101,13 @@ class Controller
 
     finger.bind("move", (finger, touch) => 
       #@log(distance: finger.origin_distance())
-      finger.circle
+      circle
         .attr("cx", touch.pageX)
         .attr("cy", touch.pageY)
     )
     finger.bind("up", (finger, touch) => 
-      finger.circle.style("opacity", 1)
-      finger.circle.transition().duration(500)
+      circle.style("opacity", 1)
+      circle.transition().duration(500)
         .style("opacity", 0)
         .attr("r", finger.circle.attr("r") * 0.50)
         .remove()
