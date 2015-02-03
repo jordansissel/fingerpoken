@@ -1,7 +1,0 @@
-guard 'shell' do
-  Dir.mkdir("build") rescue nil
-  watch(/(^.*\.jade$)/) {|m| `jade -O build #{m[1]}`  }
-  watch(/(^.*\.coffee$)/) {|m| `coffee -o build -c #{m[1]}`  }
-  watch(/(^.*\.css$)/) {|m| `cp #{m[1]} build`  }
-end
-
