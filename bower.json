@@ -1,0 +1,24 @@
+{
+  "name": "fingerpoken",
+  "version": "0.0.1",
+  "homepage": "https://github.com/jordansissel/fingerpoken",
+  "authors": [
+    "Jordan Sissel <jls@semicomplete.com>"
+  ],
+  "main": "src/main/app.js",
+  "license": "AGPL3",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "./vendor"
+  ],
+  "description": "Poke with fingers.",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.3.11",
+    "font-awesome": "~4.3.0"
+  }
+}
