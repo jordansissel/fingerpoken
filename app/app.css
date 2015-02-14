@@ -1,1 +1,50 @@
-/* app css stylesheet */
+.hovershade { 
+  text-shadow: -10px 0px 3px rgba(0,0,0,0) !important;
+  transition: text-shadow 0.3s;
+}
+
+.hovershade:hover { 
+  text-shadow: 2px 2px 3px rgba(0,0,80,0.5);
+}
+
+navigation {
+  width: 100%;
+  border-bottom: 1px solid #888;
+  display: block;
+}
+
+navigation > ul {
+  margin-top: 0px;
+  margin-left: 0px;
+  padding-left: 0px;
+  padding-top: 15px;
+}
+
+navigation li {
+  padding: 1em;
+  height: 100%;
+}
+
+navigation li > a {
+  text-color: #EEE;
+  text-decoration: none;
+  height: 100%;
+}
+
+navigation .active {
+  background-color: rgba(128,128,128,0.5);
+}
+
+navigation a {
+  width: 100%;
+  border: 1px dotted rgba(0,0,0,0);
+}
+
+navigation a:focus {
+  border: 1px dotted #888;
+}
+
+navigation li {
+  list-style: none;
+  display: inline;
+}
