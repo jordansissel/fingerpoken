@@ -47,11 +47,12 @@ func main() {
   client, _ := consul.NewClient(consul.DefaultConfig())
   zj, err := util.NewZJServer() 
   if err != nil {
-    fmt.Printf("NewZJRPC failure: %s\n", err)
+    fmt.Printf("NewZJServer failure: %s\n", err)
     panic("!")
   }
   zj.RegisterWithConsul(client)
   zj.Register(NewMouse())
+
   err = zj.Loop()
   fmt.Printf("Loop: %s\n", err)
 }
