@@ -28,7 +28,7 @@
 
   Fingerpoken.prototype.stop_flush = function() {
     if (this.live_interval !== undefined) {
-      log("Stopping flush")
+      //log("Stopping flush")
       clearInterval(this.live_interval);
       this.live_interval = undefined;
     }
@@ -38,7 +38,7 @@
     if (this.live_interval !== undefined) {
       this.stop_flush();
     }
-    log("Starting flush")
+    //log("Starting flush")
     var self = this;
     this.live_interval = setInterval(function() {
       self.flush()
@@ -68,17 +68,33 @@
 
     this.websocket.onmessage = function(event) {
       var result = JSON.parse(event.data)
+
+      // Congestion control.
+      // If latency is larger than flush rate, slow
+      // down flush_rate (increase iterval time).
+      // If latency is less than flush rate, speed
+      // up flush_rate (decreate interval time)
+      // This should ad some rough congestion correction
+      // where we can absorb latency spikes and recover
+      // to whatever the average round-trip latency is.
       var latency = (Date.now() - result.id.ts)
-      if (latency > this.flush_rate * 2) {
-        self.rate(Math.floor(latency * 1.5));
-      } else if (latench < this.flush_rate / 1.5) {
-        self.rate(Math.floor(latency / 1.25));
+      log(latency + "|" + self.flush_rate);
+      if (latency > self.flush_rate * 2) {
+        self.rate(Math.floor(self.flush_rate * 1.1));
+      } else if (latency < self.flush_rate / 1.5) {
+        self.rate(Math.floor(self.flush_rate * 0.9));
       }
       //log("Message[" + latency + "]: " + event.data);
     }
   };
 
   Fingerpoken.prototype.rate = function(val) {
+    if (val < 16) {
+      return self.rate(16);
+    }
+    if (val == self.flush_rate) {
+      return;
+    }
     log("Setting frame rate: " + val);
     this.flush_rate = val;
     this.setup_flush();
