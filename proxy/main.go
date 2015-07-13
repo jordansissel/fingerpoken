@@ -3,6 +3,7 @@ package main
 import (
   "github.com/gorilla/mux"
   "github.com/gorilla/websocket"
+  //"time"
   "net/http"
   "net"
   "fmt"
@@ -56,6 +57,8 @@ func serveWebSocket(w http.ResponseWriter, r *http.Request) {
         fmt.Printf("endpoint.RecvMessage fail: %s\n", err)
         panic("!")
       }
+
+      //time.Sleep(50 * time.Millisecond)
       //fmt.Printf("Resp: %v\n", string(response[0]))
       err = conn.WriteMessage(mtype, response[0])
       if err != nil {
