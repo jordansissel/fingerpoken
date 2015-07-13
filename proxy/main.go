@@ -4,6 +4,7 @@ import (
   "github.com/gorilla/mux"
   "github.com/gorilla/websocket"
   "net/http"
+  "net"
   "fmt"
   consul "github.com/hashicorp/consul/api"
   czmq "github.com/zeromq/goczmq"
@@ -23,6 +24,9 @@ func serveWebSocket(w http.ResponseWriter, r *http.Request) {
     return
   }
 
+  var tcp = conn.UnderlyingConn().(*net.TCPConn)
+  tcp.SetNoDelay(true)
+
   client, _ := consul.NewClient(consul.DefaultConfig())
   services, _, _ := client.Catalog().Service("rpc", "", nil)
 
@@ -37,7 +41,10 @@ func serveWebSocket(w http.ResponseWriter, r *http.Request) {
   err = nil
   for err == nil {
     mtype, payload, err := conn.ReadMessage()
-    fmt.Printf("%s Payload [%v]: %s\n", mtype, err, string(payload))
+    if err != nil {
+      break
+    }
+    //fmt.Printf("%s Payload [%v]: %s\n", mtype, err, string(payload))
     for _, endpoint := range endpoints {
       err = endpoint.SendFrame(payload[:], 0)
       if err != nil {
@@ -49,7 +56,11 @@ func serveWebSocket(w http.ResponseWriter, r *http.Request) {
         fmt.Printf("endpoint.RecvMessage fail: %s\n", err)
         panic("!")
       }
-      fmt.Printf("Resp: %v\n", string(response[0]))
+      //fmt.Printf("Resp: %v\n", string(response[0]))
+      err = conn.WriteMessage(mtype, response[0])
+      if err != nil {
+        conn.Close();
+      }
     }
   }
 }
