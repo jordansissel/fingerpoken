@@ -1,11 +1,12 @@
 package util
 
 import (
-  consul "github.com/hashicorp/consul/api"
   "net/url"
   "net"
   "strconv"
+  consul "github.com/hashicorp/consul/api"
 )
+
 func registerConsulService(client *consul.Client, name, endpoint string) error {
   agent := client.Agent()
   uri, _ := url.Parse(endpoint)
