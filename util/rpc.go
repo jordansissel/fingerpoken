@@ -58,6 +58,7 @@ func (zj *ZJServer) Once() (err error) {
   if err != nil {
     return 
   }
+  //fmt.Printf("> %s\n", string(message[0]))
 
   input := bytes.NewBuffer(message[0])
   output := &bytes.Buffer{}
