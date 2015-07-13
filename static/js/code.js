@@ -11,6 +11,38 @@
   var Fingerpoken = function() {
     log("New fingerpoken");
     this.connect();
+    this.rpc_id = 0;
+
+    this.flush_rate = 16; // milliseconds
+    this.setup_flush();
+  }
+
+  Fingerpoken.prototype.flush = function() {
+    if (this.next_rpc === undefined) {
+      this.stop_flush();
+    } else {
+      fp.send(JSON.stringify(this.next_rpc));
+      this.next_rpc = undefined;
+    }
+  };
+
+  Fingerpoken.prototype.stop_flush = function() {
+    if (this.live_interval !== undefined) {
+      log("Stopping flush")
+      clearInterval(this.live_interval);
+      this.live_interval = undefined;
+    }
+  }
+
+  Fingerpoken.prototype.setup_flush = function() {
+    if (this.live_interval !== undefined) {
+      this.stop_flush();
+    }
+    log("Starting flush")
+    var self = this;
+    this.live_interval = setInterval(function() {
+      self.flush()
+    }, this.flush_rate)
   }
 
   Fingerpoken.prototype.connect = function() { 
@@ -33,6 +65,23 @@
       this.websocket = undefined;
       setTimeout(function() { self.connect(); }, 250);
     }
+
+    this.websocket.onmessage = function(event) {
+      var result = JSON.parse(event.data)
+      var latency = (Date.now() - result.id.ts)
+      if (latency > this.flush_rate * 2) {
+        self.rate(Math.floor(latency * 1.5));
+      } else if (latench < this.flush_rate / 1.5) {
+        self.rate(Math.floor(latency / 1.25));
+      }
+      //log("Message[" + latency + "]: " + event.data);
+    }
+  };
+
+  Fingerpoken.prototype.rate = function(val) {
+    log("Setting frame rate: " + val);
+    this.flush_rate = val;
+    this.setup_flush();
   }
 
   Fingerpoken.prototype.ready = function() {
@@ -47,6 +96,18 @@
     this.websocket.send(message);
   }
 
+  Fingerpoken.prototype.nextRPCId = function() {
+    this.rpc_id += 1;
+    return this.rpc_id;
+  }
+
+  Fingerpoken.prototype.set_next_rpc = function(rpc) {
+    this.next_rpc = rpc;
+    if (this.live_interval === undefined) {
+      this.setup_flush()
+    }
+  }
+
   var touch_el = document.querySelector("touch");
   function handleMove(fp, event) {
     event.preventDefault();
@@ -59,9 +120,10 @@
     var rpc = {
       method: "Mouse.Move",
       params: [ { x: x, y: y } ],
-      id: 1,
+      id: { id: fp.nextRPCId(), ts: Date.now() },
     }
-    fp.send(JSON.stringify(rpc));
+    fp.set_next_rpc(rpc)
+    //fp.send(JSON.stringify(rpc));
   };
 
   log("Starting up...");
