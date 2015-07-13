@@ -33,7 +33,7 @@ type MoveArgs struct {
 }
 
 func (m *Mouse) Move(args *MoveArgs, reply *int) error {
-  fmt.Printf("%#v\n", args)
+  //fmt.Printf("%#v\n", args)
   screen := xproto.Setup(m.x11).DefaultScreen(m.x11)
   cookie := xtest.FakeInputChecked(m.x11, xproto.MotionNotify, 0, 0, screen.Root, int16(args.X), int16(args.Y), 0)
   if cookie.Check() != nil {
