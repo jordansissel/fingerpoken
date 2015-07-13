@@ -68,7 +68,6 @@ func (zj *ZJServer) Once() (err error) {
     fmt.Printf("ServeRequest err: %s\n", err);
   }
 
-  response := [1][]byte{ output.Bytes() }
-  zj.repsock.SendMessage(response[:])
+  zj.repsock.SendFrame(output.Bytes(), 0)
   return
 }
