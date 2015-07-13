@@ -69,7 +69,7 @@
     this.websocket.onmessage = function(event) {
       var result = JSON.parse(event.data)
 
-      // Congestion control.
+      // Reactive congestion control.
       // If latency is larger than flush rate, slow
       // down flush_rate (increase iterval time).
       // If latency is less than flush rate, speed
@@ -78,7 +78,7 @@
       // where we can absorb latency spikes and recover
       // to whatever the average round-trip latency is.
       var latency = (Date.now() - result.id.ts)
-      log(latency + "|" + self.flush_rate);
+      //log(latency + "|" + self.flush_rate);
       if (latency > self.flush_rate * 2) {
         self.rate(Math.floor(self.flush_rate * 1.1));
       } else if (latency < self.flush_rate / 1.5) {
@@ -109,6 +109,9 @@
   }
 
   Fingerpoken.prototype.send = function(message) {
+    // TODO(sissel): Add proactive congestion control.
+    // This should track how many messages are in-flight/delays/etc
+    // and slow the flush_rate if there's too many unanswered calls.
     this.websocket.send(message);
   }
 
