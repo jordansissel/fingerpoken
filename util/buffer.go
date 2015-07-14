@@ -1,12 +1,11 @@
 package util
 
 import (
-  "io"
+	"io"
 )
 
 type buffer struct {
-  io.Reader
-  io.Writer
-  io.Closer
+	io.Reader
+	io.Writer
+	io.Closer
 }
-
