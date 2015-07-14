@@ -41,6 +41,7 @@ func (f *Foo) Bar(args interface{}, reply *int) (err error) {
 }
 
 func Test_ZJServer_RPC_With_Good_Request(t *testing.T) {
+	// Use a random number here to add a bit of entropy into our tests.
 	foo := Foo{bar: rand.Int()}
 
 	zj, _ := NewZJServer()
