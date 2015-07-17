@@ -40,9 +40,10 @@ func (zj *ZJServer) RegisterWithConsul(client *consul.Client) (err error) {
 	return
 }
 
-func (zj *ZJServer) Register(handler interface{}) error {
+func (zj *ZJServer) Register(handler interface{}) (err error) {
 	// TODO(sissel): record the methods supported by `handler` and expose that as a ListMethods call
-	return zj.rpc.Register(handler)
+	err = zj.rpc.Register(handler)
+	return
 }
 
 func (zj *ZJServer) Loop() (err error) {

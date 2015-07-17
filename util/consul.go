@@ -23,7 +23,7 @@ func ConsulRegisterService(client *consul.Client, name, endpoint string) (err er
 	}
 
 	service := &consul.AgentServiceRegistration{
-		Name: "rpc",
+		Name: name,
 		Port: int(port_i),
 	}
 	err = agent.ServiceRegister(service)

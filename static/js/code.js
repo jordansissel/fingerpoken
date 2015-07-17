@@ -67,24 +67,29 @@
     }
 
     this.websocket.onmessage = function(event) {
+      console.log(event.data);
       var result = JSON.parse(event.data)
-
-      // Reactive congestion control.
-      // If latency is larger than flush rate, slow
-      // down flush_rate (increase iterval time).
-      // If latency is less than flush rate, speed
-      // up flush_rate (decreate interval time)
-      // This should ad some rough congestion correction
-      // where we can absorb latency spikes and recover
-      // to whatever the average round-trip latency is.
-      var latency = (Date.now() - result.id.ts)
-      //log(latency + "|" + self.flush_rate);
-      if (latency > self.flush_rate * 2) {
-        self.rate(Math.floor(self.flush_rate * 1.1));
-      } else if (latency < self.flush_rate / 1.5) {
-        self.rate(Math.floor(self.flush_rate * 0.9));
+      if (result.id === null) {
+        // Notification
+        log(result.params.line);
+      } else {
+        // Reactive congestion control.
+        // If latency is larger than flush rate, slow
+        // down flush_rate (increase iterval time).
+        // If latency is less than flush rate, speed
+        // up flush_rate (decreate interval time)
+        // This should ad some rough congestion correction
+        // where we can absorb latency spikes and recover
+        // to whatever the average round-trip latency is.
+        var latency = (Date.now() - result.id.ts)
+        //log(latency + "|" + self.flush_rate);
+        if (latency > self.flush_rate * 2) {
+          self.rate(Math.floor(self.flush_rate * 1.1));
+        } else if (latency < self.flush_rate / 1.5) {
+          self.rate(Math.floor(self.flush_rate * 0.9));
+        }
+        log("Message[" + latency + "]: " + event.data);
       }
-      //log("Message[" + latency + "]: " + event.data);
     }
   };
 

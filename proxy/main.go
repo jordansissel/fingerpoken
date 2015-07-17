@@ -1,76 +1,82 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
-	//"time"
 	"fmt"
+	"github.com/gorilla/mux"
 	consul "github.com/hashicorp/consul/api"
+	"github.com/jordansissel/fingerpoken/util"
 	czmq "github.com/zeromq/goczmq"
-	"net"
+	"os"
+	//"net"
+	"log"
 	"net/http"
 )
 
-func serveWebSocket(w http.ResponseWriter, r *http.Request) {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
+type Notification []byte
 
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+type Gateway struct{}
 
-	var tcp = conn.UnderlyingConn().(*net.TCPConn)
-	tcp.SetNoDelay(true)
-
-	client, _ := consul.NewClient(consul.DefaultConfig())
-	services, _, _ := client.Catalog().Service("rpc", "", nil)
-
-	var endpoints []*czmq.Sock
-	for _, service := range services {
-		endpoint := fmt.Sprintf("tcp://%s:%d", service.Address, service.ServicePort)
-		fmt.Println(endpoint)
-		req, _ := czmq.NewReq(endpoint)
-		endpoints = append(endpoints, req)
-	}
-
-	err = nil
-	for err == nil {
-		mtype, payload, err := conn.ReadMessage()
-		if err != nil {
-			break
-		}
-		//fmt.Printf("%s Payload [%v]: %s\n", mtype, err, string(payload))
-		for _, endpoint := range endpoints {
-			err = endpoint.SendFrame(payload[:], 0)
-			if err != nil {
-				fmt.Printf("endpoint.SendMessage fail: %s\n", err)
-				panic("!")
-			}
-			response, err := endpoint.RecvMessage()
-			if err != nil {
-				fmt.Printf("endpoint.RecvMessage fail: %s\n", err)
-				panic("!")
-			}
-
-			//time.Sleep(50 * time.Millisecond)
-			//fmt.Printf("Resp: %v\n", string(response[0]))
-			err = conn.WriteMessage(mtype, response[0])
-			if err != nil {
-				conn.Close()
-			}
-		}
-	}
+func (g *Gateway) Ping(args interface{}, reply *interface{}) (err error) {
+	return nil
 }
 
 func main() {
+	log.SetOutput(os.Stdout)
+	client, err := consul.NewClient(consul.DefaultConfig())
+	if err != nil {
+		log.Fatalf("Failure to get a consul client connection: %s\n", err)
+	}
+
+	notification_chan := make(chan *Notification)
+	go RunWebInterface(client, notification_chan)
+	go RunRPCInterface(client)
+	RunNotificationReceiver(client, notification_chan)
+}
+
+func RunWebInterface(client *consul.Client, notification_chan chan *Notification) {
 	r := mux.NewRouter()
 	r.Handle("/", http.FileServer(http.Dir("./static")))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js", http.FileServer(http.Dir("./static/js/"))))
-	r.HandleFunc("/ws", serveWebSocket)
+	r.HandleFunc("/ws",
+		func(w http.ResponseWriter, r *http.Request) {
+			WebSocketMuxHandler(w, r, notification_chan)
+		})
 	http.Handle("/", r)
 	http.ListenAndServe(":8000", nil)
+}
+
+func RunRPCInterface(client *consul.Client) {
+	zj, err := util.NewZJServer()
+	if err != nil {
+		fmt.Printf("NewZJServer failure: %s\n", err)
+		panic("!")
+	}
+	zj.RegisterWithConsul(client)
+	zj.Register(&Gateway{})
+	err = zj.Loop()
+	fmt.Printf("Loop: %s\n", err)
+}
+
+func RunNotificationReceiver(client *consul.Client, notification_chan chan *Notification) {
+	socket, err := czmq.NewPull("tcp://*:*")
+	if err != nil {
+		log.Printf("czmq.NewPull() failed: %s\n", err)
+		panic("czmq.NewPull")
+	}
+	endpoint := socket.LastEndpoint()
+	log.Printf("Notifications endpoint: %s\n", endpoint)
+	err = util.ConsulRegisterService(client, "gateway", endpoint)
+	log.Printf("ConsulRegisterService: %s\n", err)
+
+	for {
+		message, err := socket.RecvMessage()
+		if err != nil {
+			log.Printf("PULL: socket.RecvMessage(): %s\n", err)
+			continue
+		}
+		log.Printf("PULL: Received: %s\n", string(message[0]))
+		log.Printf("PULL: CHAN %v\n", notification_chan)
+		var n = Notification(message[0])
+		notification_chan <- &n
+	}
 }
