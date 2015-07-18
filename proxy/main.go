@@ -27,19 +27,19 @@ func main() {
 		log.Fatalf("Failure to get a consul client connection: %s\n", err)
 	}
 
-	notification_chan := make(chan *Notification)
-	go RunWebInterface(client, notification_chan)
+  nbc := &NotificationBroadcaster{}
+	go RunWebInterface(client, nbc)
 	go RunRPCInterface(client)
-	RunNotificationReceiver(client, notification_chan)
+	RunNotificationReceiver(client, nbc)
 }
 
-func RunWebInterface(client *consul.Client, notification_chan chan *Notification) {
+func RunWebInterface(client *consul.Client, nbc *NotificationBroadcaster) {
 	r := mux.NewRouter()
 	r.Handle("/", http.FileServer(http.Dir("./static")))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js", http.FileServer(http.Dir("./static/js/"))))
 	r.HandleFunc("/ws",
 		func(w http.ResponseWriter, r *http.Request) {
-			WebSocketMuxHandler(w, r, notification_chan)
+			WebSocketMuxHandler(w, r, nbc)
 		})
 	http.Handle("/", r)
 	http.ListenAndServe(":8000", nil)
@@ -57,7 +57,7 @@ func RunRPCInterface(client *consul.Client) {
 	fmt.Printf("Loop: %s\n", err)
 }
 
-func RunNotificationReceiver(client *consul.Client, notification_chan chan *Notification) {
+func RunNotificationReceiver(client *consul.Client, nbc *NotificationBroadcaster) {
 	socket, err := czmq.NewPull("tcp://*:*")
 	if err != nil {
 		log.Printf("czmq.NewPull() failed: %s\n", err)
@@ -74,9 +74,9 @@ func RunNotificationReceiver(client *consul.Client, notification_chan chan *Noti
 			log.Printf("PULL: socket.RecvMessage(): %s\n", err)
 			continue
 		}
-		log.Printf("PULL: Received: %s\n", string(message[0]))
-		log.Printf("PULL: CHAN %v\n", notification_chan)
+		//log.Printf("PULL: Received: %s\n", string(message[0]))
 		var n = Notification(message[0])
-		notification_chan <- &n
+    nbc.Publish(&n);
+		//log.Printf("PULL: CHAN %v\n", nbc)
 	}
 }

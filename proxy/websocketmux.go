@@ -19,16 +19,21 @@ type WebSocketMessage struct {
 	p           []byte
 }
 
-func WebSocketMuxHandler(w http.ResponseWriter, r *http.Request, notifications chan *Notification) {
+func WebSocketMuxHandler(w http.ResponseWriter, r *http.Request, nbc *NotificationBroadcaster) {
 	mux := &WebSocketMux{}
 
-	mux.Handle(w, r, notifications)
+	mux.Handle(w, r, nbc)
 }
 
 func upgrade(w http.ResponseWriter, r *http.Request) (conn *websocket.Conn, err error) {
+	log.Printf("Headers: %#v\n", r.Header)
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		Subprotocols:    []string{"notifications", "rpc", ""},
+		CheckOrigin: func(r *http.Request) bool {
+			return true // TODO(sissel): Actually validate origin
+		},
 	}
 
 	conn, err = upgrader.Upgrade(w, r, nil)
@@ -39,12 +44,15 @@ func upgrade(w http.ResponseWriter, r *http.Request) (conn *websocket.Conn, err 
 	return
 }
 
-func (wsm *WebSocketMux) Handle(w http.ResponseWriter, r *http.Request, notifications chan *Notification) {
+func (wsm *WebSocketMux) Handle(w http.ResponseWriter, r *http.Request, nbc *NotificationBroadcaster) {
 	conn, err := upgrade(w, r)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+  n := make(chan *Notification)
+  nbc.Subscribe(n)
+  defer func() { nbc.Unsubscribe(n) }()
 
 	log.Printf("New websocket connection\n")
 
@@ -54,15 +62,20 @@ func (wsm *WebSocketMux) Handle(w http.ResponseWriter, r *http.Request, notifica
 	var input chan *WebSocketMessage
 
 	// Notifications come in on the notifications chan. Forward them.
-	go WebSocketForwardNotifications(conn, notifications)
-	go WebSocketReadMessagesLoop(conn, input)
+	go WebSocketForwardNotifications(conn, n)
+	go WebSocketReadMessagesLoop(conn, input, n)
 
 	for x := range input {
 		log.Printf("ReadMessage: %s\n", string(x.p))
 	}
 }
 
-func WebSocketReadMessagesLoop(conn *websocket.Conn, input chan *WebSocketMessage) {
+func WebSocketReadMessagesLoop(conn *websocket.Conn, input chan *WebSocketMessage, notifications chan *Notification) {
+  defer func() { 
+    conn.Close()
+    close(notifications)
+  }()
+
 	for {
 		mtype, payload, err := conn.ReadMessage()
 		if err != nil {
@@ -72,16 +85,18 @@ func WebSocketReadMessagesLoop(conn *websocket.Conn, input chan *WebSocketMessag
 		log.Printf("WebSocket Message: %s\n", string(payload))
 		input <- &WebSocketMessage{mtype, payload}
 	}
-	conn.Close()
 }
 
 func WebSocketForwardNotifications(conn *websocket.Conn, notifications chan *Notification) {
 	for {
-		notification := <-notifications
-		log.Printf("Received %v\n", string(*notification))
+		notification, more := <-notifications
+    if !more {
+      break
+    }
+		//log.Printf("Received %v\n", string(*notification))
 		err := conn.WriteMessage(1, *notification)
 		if err != nil {
-			log.Printf("Error writing to websocket %v\n", *conn)
+			log.Printf("Error writing to websocket\n")
 			break
 		}
 	}
