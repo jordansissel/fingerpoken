@@ -84,6 +84,16 @@ func TestWorkerHeartbeatMessage(t *testing.T) {
 	}
 }
 
+type HelloGreeter struct{}
+
+func (h *HelloGreeter) Request(request [][]byte) (response [][]byte, err error) {
+	response = append(response, []byte("Nice to meet you!"))
+	return
+}
+
+func (h *HelloGreeter) Heartbeat()  {}
+func (h *HelloGreeter) Disconnect() {}
+
 func TestWorkerRun(t *testing.T) {
 	broker := fmt.Sprintf("inproc://%s", randomHex())
 	service := randomHex()
@@ -96,18 +106,7 @@ func TestWorkerRun(t *testing.T) {
 	}
 
 	go func(broker, service string) {
-		w := NewWorker(broker, service)
-		w.Run(func(c Command, b [][]byte) (response [][]byte, err error) {
-			switch c {
-			case C_REQUEST:
-				response = append(response, []byte("Nice to meet you!"))
-			case C_HEARTBEAT:
-			case C_DISCONNECT:
-			default:
-				// Invalid command
-			}
-			return
-		})
+		NewWorker(broker, service).Run(&HelloGreeter{})
 	}(broker, service)
 
 	frames, _ := sock.RecvMessage()

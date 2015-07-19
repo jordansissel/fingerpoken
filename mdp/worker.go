@@ -21,7 +21,11 @@ func NewWorker(broker string, service string) (w *Worker) {
 	return
 }
 
-type RequestHandler func(Command, [][]byte) ([][]byte, error)
+type RequestHandler interface {
+	Request([][]byte) ([][]byte, error)
+	Heartbeat()
+	Disconnect()
+}
 
 func (w *Worker) Run(requestHandler RequestHandler) error {
 	w.ensure_connected()
@@ -35,9 +39,14 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 			continue
 		}
 		switch command {
-		case C_REQUEST, C_HEARTBEAT, C_DISCONNECT:
+		case C_HEARTBEAT:
+			requestHandler.Heartbeat()
+		case C_DISCONNECT:
+			requestHandler.Disconnect()
+			w.sock.Destroy()
+		case C_REQUEST:
 			// The spec supports multiple frames for a request message. Let's support that.
-			reply_body, err := requestHandler(command, body)
+			reply_body, err := requestHandler.Request(body)
 			if err != nil {
 				log.Printf("Error handling request: %s\n", err)
 				w.Reset()
@@ -71,9 +80,7 @@ func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, e
 		return
 	}
 
-	for i, x := range frames {
-		fmt.Printf("read: %d %v %s\n", i, x, string(x))
-	}
+	//for i, x := range frames { fmt.Printf("read: %d %v %s\n", i, x, string(x)) }
 	err = validateWorkerRequest(frames[:])
 	if err != nil {
 		err = fmt.Errorf("Got an invalid worker request in request. Will reset connection. %s", err)
