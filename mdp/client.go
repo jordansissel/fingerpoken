@@ -3,15 +3,17 @@ package mdp
 import (
 	"bytes"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	// Use my fork until issue #145 is fixed/merged.
+	czmq "github.com/jordansissel/goczmq"
 	"log"
 	"time"
 )
 
 type Client struct {
-	sock   *czmq.Sock
-	broker string
-	poller *czmq.Poller
+	sock      *czmq.Sock
+	broker    string
+	poller    *czmq.Poller
+	destroyed bool
 
 	RetryInterval time.Duration
 	RetryCount    int64
@@ -35,7 +37,7 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 
 	var reply [][]byte
 	got_reply := false
-	for i := int64(0); !got_reply && i < c.RetryCount; i += 1 {
+	for i := int64(0); !got_reply && !c.destroyed && i < c.RetryCount; i += 1 {
 		// Since we're using a REQ socket, we use a 3-frame message instead of the 4-frame message a DEALER would use.
 		// TODO(sissel): The body can occupy more than 1 frame, let's maybe support that some day?
 		var request [3][]byte = [3][]byte{
@@ -55,9 +57,7 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 			return
 		}
 
-		log.Printf("Client: Waiting...")
-		s := c.poller.Wait(c.retryIntervalInMilliseconds())
-		log.Printf("Client: Socket is ready... %s", s)
+		s := czmqPollerSafeWait(c.poller, c.retryIntervalInMilliseconds())
 		if s != nil {
 			log.Printf("Client: Reading ...")
 			reply, err = s.RecvMessage()
@@ -70,11 +70,17 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 				return
 			}
 			got_reply = true
+		} else if c.destroyed {
+			err = fmt.Errorf("Client was destroyed while waiting for a response")
+			return
 		} else {
-			// Timeout
+			// timeout
 			log.Printf("Client: Timeout on try %d of request to %s service\n", i, service)
 			c.Destroy()
-			c.ensure_connected()
+			err = c.ensure_connected()
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -82,7 +88,6 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 		log.Printf("Client: Request timeout (after %d attempts at %s interval)\n", c.RetryCount, c.RetryInterval)
 		return
 	}
-	log.Printf("GOT REPLY")
 
 	if count := len(reply); count < 3 {
 		err = fmt.Errorf("Majordomo protocol problem. A REPLY must be at least 3 frames, got %d frames in a message.", count)
@@ -100,10 +105,28 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 }
 
 func (c *Client) Destroy() {
-	c.sock.Destroy()
-	c.poller.Destroy()
-	c.sock = nil
-	c.poller = nil
+	c.destroyed = true
+	if c.sock != nil {
+		c.sock.Destroy()
+		c.sock = nil
+	}
+	if c.poller != nil {
+		c.poller.Destroy()
+		c.poller = nil
+	}
+}
+
+func czmqPollerSafeWait(poller *czmq.Poller, timeout_milliseconds int) *czmq.Sock {
+	defer func() {
+		if r := recover(); r != nil {
+			if r == czmq.WaitAfterDestroyPanicMessage {
+				// ignore
+			} else {
+				panic(r)
+			}
+		}
+	}()
+	return poller.Wait(timeout_milliseconds)
 }
 
 func (c *Client) ensure_connected() error {

@@ -3,7 +3,7 @@ package mdp
 import (
 	"bytes"
 	"encoding/base64"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"log"
 	"time"
 )

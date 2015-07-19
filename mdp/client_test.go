@@ -3,7 +3,7 @@ package mdp
 import (
 	"bytes"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"testing"
 )
 
@@ -38,9 +38,7 @@ func TestClientSendFraming(t *testing.T) {
 
 	client := NewClient(endpoint)
 	defer client.Destroy()
-	go func() {
-		client.Send(service, payload[:])
-	}()
+	go client.Send(service, payload[:])
 
 	frames, err := router.RecvMessage()
 	if err != nil {
