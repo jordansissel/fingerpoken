@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/json"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"math/rand"
 	"strings"
 	"testing"

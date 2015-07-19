@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/jordansissel/fingerpoken/util"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"os"
 	//"net"
 	"log"
