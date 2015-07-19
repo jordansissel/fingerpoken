@@ -76,7 +76,7 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 		} else {
 			// timeout
 			log.Printf("Client: Timeout on try %d of request to %s service\n", i, service)
-			c.Destroy()
+			c.close()
 			err = c.ensure_connected()
 			if err != nil {
 				return
@@ -106,6 +106,10 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 
 func (c *Client) Destroy() {
 	c.destroyed = true
+	c.close()
+}
+
+func (c *Client) close() {
 	if c.sock != nil {
 		c.sock.Destroy()
 		c.sock = nil
