@@ -38,7 +38,8 @@ func TestWorkerReadyMessage(t *testing.T) {
 		return
 	}
 
-	err = validateReadyMessage(frames, service)
+	// Skip the first frame since that's the DEALER/ROUTER id
+	err = validateWorkerReady(frames[1:], service)
 	if err != nil {
 		t.Errorf("%s", err)
 		return
@@ -67,14 +68,16 @@ func TestWorkerHeartbeatMessage(t *testing.T) {
 		t.Errorf("Error reading READY message: %s\n", err)
 		return
 	}
-	err = validateReadyMessage(frames, service)
+
+	// Skip the first frame since that's the DEALER/ROUTER id
+	err = validateWorkerReady(frames[1:], service)
 	if err != nil {
 		t.Errorf("Error reading READY message: %s\n", err)
 		return
 	}
 
 	frames, err = sock.RecvMessage()
-	err = validateHeartbeat(frames)
+	err = validateWorkerHeartbeat(frames[1:])
 	if err != nil {
 		t.Errorf("Error in HEARTBEAT: %s\n", err)
 		return
