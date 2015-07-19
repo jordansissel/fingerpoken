@@ -1,7 +1,7 @@
 package mdp
 
 type Error interface {
-  error
+	error
 }
 
 type ProtocolError struct {
