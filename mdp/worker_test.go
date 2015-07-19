@@ -83,3 +83,55 @@ func TestWorkerHeartbeatMessage(t *testing.T) {
 		return
 	}
 }
+
+func TestWorkerRun(t *testing.T) {
+	broker := fmt.Sprintf("inproc://%s", randomHex())
+	service := randomHex()
+	client := randomHex()
+
+	sock, err := czmq.NewRouter(broker)
+	if err != nil {
+		t.Errorf("NewRouter(%v) failed", broker)
+		return
+	}
+
+	go func(broker, service string) {
+		w := NewWorker(broker, service)
+		w.Run(func(c Command, b [][]byte) (response [][]byte, err error) {
+			switch c {
+			case C_REQUEST:
+				response = append(response, []byte("Nice to meet you!"))
+			case C_HEARTBEAT:
+			case C_DISCONNECT:
+			default:
+				// Invalid command
+			}
+			return
+		})
+	}(broker, service)
+
+	frames, _ := sock.RecvMessage()
+	err = validateWorkerReady(frames[1:], service)
+	if err != nil {
+		t.Errorf("Error reading READY message: %s\n", err)
+		return
+	}
+
+	err = sock.SendMessage([][]byte{
+		frames[0], // router/dealer ID
+		[]byte{},
+		MDP_WORKER,
+		[]byte{byte(C_REQUEST)},
+		[]byte(client),
+		[]byte{}, // SPEC Frame 4: Empty (zero bytes, envelope delimiter)
+		[]byte("hello world"),
+	})
+	reply, err := sock.RecvMessage()
+	if err != nil {
+		t.Errorf("Error receiving reply: %s\n", err)
+	}
+	err = validateWorkerReply(reply[1:], []byte(client)) // [1:] to skip the router/dealer id
+	if err != nil {
+		t.Errorf("Reply validation failed: %s\n", err)
+	}
+}

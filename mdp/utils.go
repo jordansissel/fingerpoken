@@ -43,7 +43,7 @@ func validateClientRequest(frames [][]byte, service string) error {
 
 func validateWorkerHeader(frames [][]byte) error {
 	if length := len(frames[0]); length != 0 {
-		return fmt.Errorf("First frame must be empty")
+		return fmt.Errorf("First frame must be empty, got %v", string(frames[0]))
 	}
 
 	if !bytes.Equal(frames[1], MDP_WORKER) {
@@ -54,19 +54,16 @@ func validateWorkerHeader(frames [][]byte) error {
 }
 
 func validateWorkerReady(frames [][]byte, service string) error {
-	// Since this is a ROUTER socket, the first frame is the client id, so the MDP frames start at frames[1]
-	//for i, x := range frames {
-	//fmt.Printf("%d: %v\n", i, string(x))
-	//}
-	if count := len(frames); count < 4 {
-		return fmt.Errorf("Expected at least 4 frames, got %d", count)
+	//for i, x := range frames { fmt.Printf("%d: %v (%s)\n", i, x, string(x)) }
+	if count := len(frames); count != 4 {
+		return fmt.Errorf("Expected exactly 4 frames, got %d", count)
 	}
 
 	if err := validateWorkerHeader(frames); err != nil {
 		return err
 	}
 
-	if !bytes.Equal(frames[2], []byte{C_READY}) {
+	if len(frames[2]) != 1 || Command(frames[2][0]) != C_READY {
 		return fmt.Errorf("Third frame must be 0x%02x (READY command).", C_READY)
 	}
 
@@ -91,8 +88,62 @@ func validateWorkerHeartbeat(frames [][]byte) error {
 		return err
 	}
 
-	if !bytes.Equal(frames[2], []byte{C_HEARTBEAT}) {
+	if len(frames[2]) != 1 || Command(frames[2][0]) != C_HEARTBEAT {
 		return fmt.Errorf("Third frame must be 0x%02x (HEARTBEAT command).", C_HEARTBEAT)
+	}
+	return nil
+}
+
+func validateWorkerRequest(frames [][]byte) error {
+	if count := len(frames); count < 6 {
+		return fmt.Errorf("Expected at least 6 frames, got %d", count)
+	}
+
+	if err := validateWorkerHeader(frames); err != nil {
+		return err
+	}
+
+	if len(frames[2]) != 1 || Command(frames[2][0]) != C_REQUEST {
+		return fmt.Errorf("Third frame must be 0x%02x (REQUEST command).", C_REQUEST)
+	}
+
+	// I think the client address should probably be non-empty, though the spec doesn't say this. The spec says:
+	// SPEC: The REQUEST and the REPLY commands MUST contain precisely one client address frame.
+	if len(frames[3]) == 0 {
+		return fmt.Errorf("Fourth frame (client address) must be non-empty.")
+	}
+
+	if len(frames[4]) != 0 {
+		return fmt.Errorf("Fifth frame must be empty")
+	}
+	return nil
+}
+
+func validateWorkerReply(frames [][]byte, client []byte) error {
+	if count := len(frames); count < 6 {
+		return fmt.Errorf("Expected at least 6 frames, got %d", count)
+	}
+
+	if err := validateWorkerHeader(frames); err != nil {
+		return err
+	}
+
+	if len(frames[2]) != 1 || Command(frames[2][0]) != C_REPLY {
+		return fmt.Errorf("Third frame must be 0x%02x (REPLY command).", C_REPLY)
+	}
+
+	// I think the client address should probably be non-empty, though the spec doesn't say this. The spec says:
+	// SPEC: The REQUEST and the REPLY commands MUST contain precisely one client address frame.
+	if len(frames[3]) == 0 {
+		return fmt.Errorf("Fourth frame (client address) must be non-empty.")
+	}
+
+	if !bytes.Equal(frames[3], client) {
+		return fmt.Errorf("Client address must match")
+	}
+
+	if len(frames[4]) != 0 {
+		return fmt.Errorf("Fifth frame must be empty")
 	}
 	return nil
 }

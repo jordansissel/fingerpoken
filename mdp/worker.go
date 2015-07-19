@@ -1,7 +1,9 @@
 package mdp
 
 import (
+	"fmt"
 	czmq "github.com/zeromq/goczmq"
+	"log"
 	"time"
 )
 
@@ -17,6 +19,77 @@ func NewWorker(broker string, service string) (w *Worker) {
 	w = &Worker{broker: broker, service: service}
 	w.HeartbeatFrequency = 5 * time.Second
 	return
+}
+
+type RequestHandler func(Command, [][]byte) ([][]byte, error)
+
+func (w *Worker) Run(requestHandler RequestHandler) error {
+	w.ensure_connected()
+
+	for {
+		// TODO(sissel): poll and send heartbeats
+		client, command, body, err := w.readRequest()
+		if err != nil {
+			log.Printf("Error reading request: %s\n", err)
+			w.Reset()
+			continue
+		}
+		switch command {
+		case C_REQUEST, C_HEARTBEAT, C_DISCONNECT:
+			// The spec supports multiple frames for a request message. Let's support that.
+			reply_body, err := requestHandler(command, body)
+			if err != nil {
+				log.Printf("Error handling request: %s\n", err)
+				w.Reset()
+				continue
+			}
+
+			err = w.sock.SendMessage(append([][]byte{
+				[]byte{},
+				MDP_WORKER,
+				[]byte{byte(C_REPLY)},
+				client,
+				[]byte{}, // SPEC Frame 4: Empty (zero bytes, envelope delimiter)
+			}, reply_body...),
+			)
+			if err != nil {
+				log.Printf("Error sending reply: %s\n", err)
+				w.Reset()
+				continue
+			}
+
+		default:
+			log.Printf("Got an invalid command from broker. Will reset connection. (command: %v)", command)
+			w.Reset()
+		}
+	}
+}
+
+func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, err error) {
+	frames, err := w.sock.RecvMessage()
+	if err != nil {
+		return
+	}
+
+	for i, x := range frames {
+		fmt.Printf("read: %d %v %s\n", i, x, string(x))
+	}
+	err = validateWorkerRequest(frames[:])
+	if err != nil {
+		err = fmt.Errorf("Got an invalid worker request in request. Will reset connection. %s", err)
+		return
+	}
+
+	command = Command(frames[2][0])
+	client = frames[3]
+	body = frames[5:]
+	return
+}
+
+func (w *Worker) Reset() {
+	w.sock.Destroy()
+	w.sock = nil
+	w.ensure_connected()
 }
 
 func (w *Worker) ensure_connected() error {
@@ -39,10 +112,10 @@ func (w *Worker) ensure_connected() error {
 
 func (w *Worker) sendReady() (err error) {
 	message := [4][]byte{
-		[]byte{},          // SPEC: Frame 0: Empty frame
-		MDP_WORKER,        // SPEC: Frame 1: "MDPW01" (six bytes, representing MDP/Worker v0.1)
-		[]byte{C_READY},   // SPEC: Frame 2: 0x01 (one byte, representing READY)
-		[]byte(w.service), // SPEC: Frame 3: Service name (printable string)
+		[]byte{},              // SPEC: Frame 0: Empty frame
+		MDP_WORKER,            // SPEC: Frame 1: "MDPW01" (six bytes, representing MDP/Worker v0.1)
+		[]byte{byte(C_READY)}, // SPEC: Frame 2: 0x01 (one byte, representing READY)
+		[]byte(w.service),     // SPEC: Frame 3: Service name (printable string)
 	}
 
 	err = w.sock.SendMessage(message[:])
