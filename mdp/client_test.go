@@ -27,18 +27,19 @@ func TestClientSendFraming(t *testing.T) {
 	// Randomize things for better testing confidence
 	endpoint := fmt.Sprintf("inproc://%s", randomHex())
 	service := randomHex()
-	payload := randomHex()
+	payload := [1][]byte{[]byte(randomHex())}
 
 	router, err := czmq.NewRouter(endpoint)
+	defer router.Destroy()
 	if err != nil {
 		t.Errorf("Creating new router failed, %s: %s", endpoint, err)
 		return
 	}
 
 	client := NewClient(endpoint)
+	defer client.Destroy()
 	go func() {
-		//response, err := client.Send("fancy", []byte("hello world"))
-		client.Send(service, []byte(payload))
+		client.Send(service, payload[:])
 	}()
 
 	frames, err := router.RecvMessage()
@@ -52,9 +53,9 @@ func TestClientSendFraming(t *testing.T) {
 		return
 	}
 
-	//for i, x := range frames {
-	//fmt.Printf("%d: %v (%s) \n", i, x, string(x))
-	//}
+	for i, x := range frames {
+		fmt.Printf("%d: %v (%s) \n", i, x, string(x))
+	}
 
 	// frames[0] is the client/session id for the router socket, ignore it.
 	// frames[1 ... ] are the actual request
@@ -70,13 +71,23 @@ func TestClientSendFraming(t *testing.T) {
 		return
 	}
 
-	if !bytes.Equal(frames[3], []byte(service)) {
-		t.Errorf("Majordomo request frame #3 must be a service name. Expected `%s`, got `%s`", service, string(frames[2]))
+	if len(frames[3]) != 1 || Command(frames[3][0]) != C_REQUEST {
+		t.Errorf("Majordomo request frame #3 must be REQUEST")
 		return
 	}
 
-	if !bytes.Equal(frames[4], []byte(payload)) {
-		t.Errorf("Majordomo request frame #4 must be a service name. Expected `%s`, got `%s`", payload, string(frames[3]))
+	if !bytes.Equal(frames[4], []byte(service)) {
+		t.Errorf("Majordomo request frame #4 must be a service name. Expected `%s`, got `%s`", service, string(frames[4]))
+		return
+	}
+
+	if expected, actual := len(payload), len(frames[5:]); expected != actual {
+		t.Errorf("Expected body with %d frames, got %d frames\n", expected, actual)
+		return
+	}
+
+	if !bytes.Equal(frames[5], payload[0]) {
+		t.Errorf("Majordomo request body did not match.")
 		return
 	}
 }

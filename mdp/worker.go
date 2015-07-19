@@ -34,7 +34,7 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 		// TODO(sissel): poll and send heartbeats
 		client, command, body, err := w.readRequest()
 		if err != nil {
-			log.Printf("Error reading request: %s\n", err)
+			log.Printf("Worker: Error reading request: %s\n", err)
 			w.Reset()
 			continue
 		}
@@ -48,7 +48,7 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 			// The spec supports multiple frames for a request message. Let's support that.
 			reply_body, err := requestHandler.Request(body)
 			if err != nil {
-				log.Printf("Error handling request: %s\n", err)
+				log.Printf("Worker: Error handling request: %s\n", err)
 				w.Reset()
 				continue
 			}
@@ -62,13 +62,13 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 			}, reply_body...),
 			)
 			if err != nil {
-				log.Printf("Error sending reply: %s\n", err)
+				log.Printf("Worker: Error sending reply: %s\n", err)
 				w.Reset()
 				continue
 			}
 
 		default:
-			log.Printf("Got an invalid command from broker. Will reset connection. (command: %v)", command)
+			log.Printf("Worker: Got an invalid command from broker. Will reset connection. (command: %v)", command)
 			w.Reset()
 		}
 	}
@@ -79,8 +79,10 @@ func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, e
 	if err != nil {
 		return
 	}
+	for i, x := range frames {
+		log.Printf("Worker(via Broker): frame %d: %v (%s)\n", i, x, string(x))
+	}
 
-	//for i, x := range frames { fmt.Printf("read: %d %v %s\n", i, x, string(x)) }
 	err = validateWorkerRequest(frames[:])
 	if err != nil {
 		err = fmt.Errorf("Got an invalid worker request in request. Will reset connection. %s", err)

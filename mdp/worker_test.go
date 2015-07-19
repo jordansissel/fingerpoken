@@ -84,16 +84,6 @@ func TestWorkerHeartbeatMessage(t *testing.T) {
 	}
 }
 
-type HelloGreeter struct{}
-
-func (h *HelloGreeter) Request(request [][]byte) (response [][]byte, err error) {
-	response = append(response, []byte("Nice to meet you!"))
-	return
-}
-
-func (h *HelloGreeter) Heartbeat()  {}
-func (h *HelloGreeter) Disconnect() {}
-
 func TestWorkerRun(t *testing.T) {
 	broker := fmt.Sprintf("inproc://%s", randomHex())
 	service := randomHex()

@@ -1,5 +1,9 @@
 package mdp
 
+import (
+	"fmt"
+)
+
 // Frame 1: "MDPW01" (six bytes, representing MDP/Worker v0.1)
 var MDP_CLIENT = []byte("MDPC01")
 var MDP_WORKER = []byte("MDPW01")
@@ -29,7 +33,7 @@ func (c Command) String() string {
 	case C_DISCONNECT:
 		return "<DISCONNECT>"
 	default:
-		panic("Unexpected command value")
+		return fmt.Sprintf("<INVALID COMMAND 0x%0x>", byte(c))
 	}
 }
 
