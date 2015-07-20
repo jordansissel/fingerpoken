@@ -41,7 +41,7 @@ func main() {
 
   defer func() {
     for _, e := range endpoints {
-      e.Destroy()
+      e.DestroyClose()
     }
   }()
 

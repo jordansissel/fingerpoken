@@ -53,7 +53,7 @@
     var self = this;
     var url = "ws://" + document.location.host + "/ws";
     log(url);
-    this.websocket = new WebSocket(url);
+    this.websocket = new WebSocket(url, "rpc");
     log("New websocket" + this.websocket);
     this.websocket.onopen = function(event) {
       log("Socket ready");

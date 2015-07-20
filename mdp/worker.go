@@ -112,9 +112,7 @@ func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, e
 	if err != nil {
 		return
 	}
-	for i, x := range frames {
-		log.Printf("Worker(via Broker): frame %d: %v (%s)\n", i, x, string(x))
-	}
+	//for i, x := range frames { log.Printf("Worker(via Broker): frame %d: %v (%s)\n", i, x, string(x)) }
 
 	err = validateWorkerHeader(frames[:])
 	if err != nil {

@@ -38,7 +38,7 @@ func TestEndToEnd(t *testing.T) {
 	text := randomHex()
 	body := [1][]byte{[]byte(text)}
 	// TODO(sissel): Send a client request, verify response
-	response, err := c.Send(service, body[:])
+	response, err := c.SendRecv(service, body[:])
 	//for i, x := range response { log.Printf("Client sending): frame %d: %v (%s)\n", i, x, string(x)) }
 	if err != nil {
 		t.Errorf("Failure in request to service `%s`: %s\n", service, err)

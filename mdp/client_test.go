@@ -38,7 +38,7 @@ func TestClientSendFraming(t *testing.T) {
 
 	client := NewClient(endpoint)
 	defer client.Destroy()
-	go client.Send(service, payload[:])
+	go client.SendRecv(service, payload[:])
 
 	frames, err := router.RecvMessage()
 	if err != nil {

@@ -18,13 +18,6 @@ type Broker struct {
 	HeartbeatCallback func(*WorkerEntry)
 }
 
-type WorkerEntry struct {
-	expiration            time.Time
-	service               string
-	address               []byte
-	nextSendHeartbeatTime time.Time
-}
-
 func NewBroker(endpoint string) (b *Broker, err error) {
 	b = &Broker{
 		endpoint:            endpoint,
@@ -51,7 +44,7 @@ func (b *Broker) Run() {
 	for {
 		s := czmqPollerSafeWait(poller, durationInMilliseconds(b.HeartbeatInterval))
 		if s != nil {
-			b.Once(s)
+			b.once(s)
 		}
 
 		for _, entry := range b.workers {
@@ -69,7 +62,7 @@ func (b *Broker) Run() {
 	}
 }
 
-func (b *Broker) Once(sock *czmq.Sock) {
+func (b *Broker) once(sock *czmq.Sock) {
 	frames, _ := sock.RecvMessage()
 
 	// Min. 4 frames   ||  Frame 1 is empty   || Frame 2 is MDPW01   || Frame 3 client addr || Frame 4 is empty
@@ -89,10 +82,7 @@ func (b *Broker) Once(sock *czmq.Sock) {
 }
 
 func (b *Broker) handleWorker(address []byte, frames [][]byte) {
-	for i, x := range frames {
-		log.Printf("Broker(via Worker): frame %d: %v (%s)\n", i, x, string(x))
-	}
-	//
+	//for i, x := range frames { log.Printf("Broker(via Worker): frame %d: %v (%s)\n", i, x, string(x)) }
 	if len(frames) < 3 || len(frames[1]) != 6 || len(frames[2]) != 1 {
 		log.Printf("Broker: Got an invalid worker message. Dropping.")
 		return
@@ -141,9 +131,7 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 			[]byte(entry.service),
 		}
 		client_reply := append(replyheader[:], frames[4:]...)
-		for i, x := range client_reply {
-			log.Printf("Broker(reply to Client): frame %d: %v (%s)\n", i, x, string(x))
-		}
+		//for i, x := range client_reply { log.Printf("Broker(reply to Client): frame %d: %v (%s)\n", i, x, string(x)) }
 		err := b.sock.SendMessage(client_reply)
 		if err != nil {
 			log.Printf("Broker: Error forwarding reply to client: %s\n", err)
@@ -182,9 +170,7 @@ func (b *Broker) removeWorker(address []byte) {
 }
 
 func (b *Broker) handleClient(address []byte, frames [][]byte) {
-	for i, x := range frames {
-		log.Printf("Broker(via Client %v): frame %d: %v (%s)\n", address, i, x, string(x))
-	}
+	//for i, x := range frames { log.Printf("Broker(via Client %v): frame %d: %v (%s)\n", address, i, x, string(x)) }
 	err := validateClientHeader(frames)
 	if err != nil {
 		log.Printf("Broker: Received invalid request from client. Dropping message.\n")
@@ -221,9 +207,7 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 		[]byte{},
 	}
 	message := append(worker_header[:], frames[3:]...)
-	for i, x := range message {
-		log.Printf("Broker(-> Worker): frame %d: %v (%s)\n", i, x, string(x))
-	}
+	//for i, x := range message { log.Printf("Broker(-> Worker): frame %d: %v (%s)\n", i, x, string(x)) }
 	err = b.sock.SendMessage(message)
 	if err != nil {
 		log.Printf("Broker: Error forwarding client request to a worker: %s\n", err)
@@ -253,8 +237,4 @@ func (b *Broker) sendDisconnect(entry *WorkerEntry) {
 		log.Printf("Broker: Error sending disconnect", err)
 		// TODO(sissel): what should we do?
 	}
-}
-
-func (entry *WorkerEntry) recordHeartbeat(expiration time.Time) {
-	entry.expiration = expiration
 }
