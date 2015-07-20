@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	// Use my fork until issue #145 is fixed/merged.
-	czmq "github.com/jordansissel/goczmq"
+	czmq "github.com/zeromq/goczmq"
 	"log"
 	"time"
 )

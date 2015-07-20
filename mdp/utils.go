@@ -3,7 +3,7 @@ package mdp
 import (
 	"bytes"
 	"fmt"
-	czmq "github.com/jordansissel/goczmq"
+	czmq "github.com/zeromq/goczmq"
 	"math/rand"
 	"time"
 )

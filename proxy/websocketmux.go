@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	//consul "github.com/hashicorp/consul/api"
-	//czmq "github.com/jordansissel/goczmq"
+	//czmq "github.com/zeromq/goczmq"
 	"log"
 	"net"
 	"net/http"

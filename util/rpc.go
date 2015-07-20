@@ -3,8 +3,8 @@ package util
 import (
 	"bytes"
 	consul "github.com/hashicorp/consul/api"
-	//czmq "github.com/jordansissel/goczmq"
-	czmq "github.com/jordansissel/goczmq"
+	//czmq "github.com/zeromq/goczmq"
+	czmq "github.com/zeromq/goczmq"
 	"io/ioutil"
 	"net/rpc"
 	"net/rpc/jsonrpc"

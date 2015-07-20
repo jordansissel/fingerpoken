@@ -2,7 +2,7 @@ package mdp
 
 import (
 	"fmt"
-	czmq "github.com/jordansissel/goczmq"
+	czmq "github.com/zeromq/goczmq"
 	"log"
 	"time"
 )
