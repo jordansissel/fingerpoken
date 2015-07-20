@@ -11,11 +11,11 @@ import (
 type Broker struct {
 	sock                *czmq.Sock
 	endpoint            string
-	workers             map[string]*WorkerEntry
+	workers             map[string]*workerEntry
 	HeartbeatInterval   time.Duration
 	MaxMissedHeartbeats int64
 
-	HeartbeatCallback func(*WorkerEntry)
+	HeartbeatCallback func(*workerEntry)
 }
 
 func NewBroker(endpoint string) (b *Broker, err error) {
@@ -24,7 +24,7 @@ func NewBroker(endpoint string) (b *Broker, err error) {
 		HeartbeatInterval:   5 * time.Second,
 		MaxMissedHeartbeats: 3,
 	}
-	b.workers = make(map[string]*WorkerEntry)
+	b.workers = make(map[string]*workerEntry)
 
 	b.sock, err = czmq.NewRouter(endpoint)
 	if err != nil {
@@ -142,20 +142,20 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 func (b *Broker) addWorker(address []byte, service string) {
 	log.Printf("New worker providing `%s`\n", service)
 	key := base64.StdEncoding.EncodeToString(address)
-	b.workers[key] = &WorkerEntry{
+	b.workers[key] = &workerEntry{
 		expiration: b.nextExpiration(),
 		service:    service, // SPEC: Frame 3: Service name (printable string)
 		address:    address,
 	}
 }
 
-func (b *Broker) getWorkerByAddress(address []byte) (*WorkerEntry, bool) {
+func (b *Broker) getWorkerByAddress(address []byte) (*workerEntry, bool) {
 	key := base64.StdEncoding.EncodeToString(address)
 	entry, ok := b.workers[key]
 	return entry, ok
 }
 
-func (b *Broker) getWorkerByService(service string) (*WorkerEntry, bool) {
+func (b *Broker) getWorkerByService(service string) (*workerEntry, bool) {
 	for _, e := range b.workers {
 		if e.service == service {
 			return e, true
@@ -219,7 +219,7 @@ func (b *Broker) nextExpiration() time.Time {
 	return time.Now().Add(time.Duration(int64(b.HeartbeatInterval) * b.MaxMissedHeartbeats))
 }
 
-func (b *Broker) sendHeartbeat(entry *WorkerEntry) {
+func (b *Broker) sendHeartbeat(entry *workerEntry) {
 	heartbeat := [][]byte{entry.address}
 	heartbeat = append(heartbeat[:], m_HEARTBEAT[:]...)
 	err := b.sock.SendMessage(heartbeat)
@@ -229,7 +229,7 @@ func (b *Broker) sendHeartbeat(entry *WorkerEntry) {
 	}
 }
 
-func (b *Broker) sendDisconnect(entry *WorkerEntry) {
+func (b *Broker) sendDisconnect(entry *workerEntry) {
 	disconnect := [][]byte{entry.address}
 	disconnect = append(disconnect[:], m_DISCONNECT[:]...)
 	err := b.sock.SendMessage(disconnect)

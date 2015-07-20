@@ -96,7 +96,7 @@ func TestWorkerRun(t *testing.T) {
 	}
 
 	go func(broker, service string) {
-		NewWorker(broker, service).Run(&HelloGreeter{})
+		NewWorker(broker, service).Run(&helloGreeter{})
 	}(broker, service)
 
 	frames, _ := sock.RecvMessage()

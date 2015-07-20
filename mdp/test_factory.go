@@ -1,13 +1,13 @@
 package mdp
 
-type HelloGreeter struct{}
+type helloGreeter struct{}
 
 var helloGreeting = []byte("Nice to meet you!")
 
-func (h *HelloGreeter) Request(request [][]byte) (response [][]byte, err error) {
+func (h *helloGreeter) Request(request [][]byte) (response [][]byte, err error) {
 	response = append(response, helloGreeting)
 	return
 }
 
-func (h *HelloGreeter) Heartbeat()  {}
-func (h *HelloGreeter) Disconnect() {}
+func (h *helloGreeter) Heartbeat()  {}
+func (h *helloGreeter) Disconnect() {}

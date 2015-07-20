@@ -33,7 +33,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	go b.Run()
-	go w.Run(&HelloGreeter{})
+	go w.Run(&helloGreeter{})
 
 	text := randomHex()
 	body := [1][]byte{[]byte(text)}
@@ -111,11 +111,11 @@ func TestWorkerToBrokerHeartbeat(t *testing.T) {
 	w.HeartbeatInterval = b.HeartbeatInterval
 
 	beats := make(chan time.Time)
-	b.HeartbeatCallback = func(entry *WorkerEntry) {
+	b.HeartbeatCallback = func(entry *workerEntry) {
 		beats <- time.Now()
 	}
 	start := time.Now()
-	go w.Run(&HelloGreeter{})
+	go w.Run(&helloGreeter{})
 	go b.Run()
 
 	heartbeatTime := <-beats
