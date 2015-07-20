@@ -23,7 +23,7 @@ func NewClient(broker string) (c *Client) {
 	c = &Client{
 		broker:        broker,
 		RetryCount:    3,
-		RetryInterval: 1000 * time.Millisecond,
+		RetryInterval: 100 * time.Millisecond,
 	}
 	return
 }
@@ -57,14 +57,12 @@ func (c *Client) Send(service string, body [][]byte) (response [][]byte, err err
 			return
 		}
 
-		s := czmqPollerSafeWait(c.poller, c.retryIntervalInMilliseconds())
+		s := czmqPollerSafeWait(c.poller, durationInMilliseconds(c.RetryInterval))
 		if s != nil {
-			log.Printf("Client: Reading ...")
 			reply, err = s.RecvMessage()
 			for i, x := range reply {
 				log.Printf("Client(via Broker): frame %d: %v (%s)\n", i, x, string(x))
 			}
-			log.Printf("Client: Done Reading ...")
 			if err != nil {
 				log.Printf("Client: Error receiving message: %s\n", err)
 				return
@@ -120,19 +118,6 @@ func (c *Client) close() {
 	}
 }
 
-func czmqPollerSafeWait(poller *czmq.Poller, timeout_milliseconds int) *czmq.Sock {
-	defer func() {
-		if r := recover(); r != nil {
-			if r == czmq.WaitAfterDestroyPanicMessage {
-				// ignore
-			} else {
-				panic(r)
-			}
-		}
-	}()
-	return poller.Wait(timeout_milliseconds)
-}
-
 func (c *Client) ensure_connected() error {
 	if c.sock != nil {
 		return nil
@@ -148,8 +133,4 @@ func (c *Client) ensure_connected() error {
 		return err
 	}
 	return nil
-}
-
-func (c *Client) retryIntervalInMilliseconds() int {
-	return int(int64(c.RetryInterval / time.Millisecond))
 }

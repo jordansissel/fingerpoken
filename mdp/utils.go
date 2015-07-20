@@ -3,7 +3,9 @@ package mdp
 import (
 	"bytes"
 	"fmt"
+	czmq "github.com/jordansissel/goczmq"
 	"math/rand"
+	"time"
 )
 
 func randomHex() (value string) {
@@ -146,4 +148,21 @@ func validateWorkerReply(frames [][]byte, client []byte) error {
 		return fmt.Errorf("Fifth frame must be empty")
 	}
 	return nil
+}
+
+func durationInMilliseconds(d time.Duration) int {
+	return int(d / time.Millisecond)
+}
+
+func czmqPollerSafeWait(poller *czmq.Poller, timeout_milliseconds int) *czmq.Sock {
+	defer func() {
+		if r := recover(); r != nil {
+			if r == czmq.WaitAfterDestroyPanicMessage {
+				// ignore
+			} else {
+				panic(r)
+			}
+		}
+	}()
+	return poller.Wait(timeout_milliseconds)
 }

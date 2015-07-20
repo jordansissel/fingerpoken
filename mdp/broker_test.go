@@ -3,7 +3,9 @@ package mdp
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"testing"
+	"time"
 )
 
 func TestBrokerWorkerIntegration(t *testing.T) {
@@ -37,6 +39,7 @@ func TestEndToEnd(t *testing.T) {
 	body := [1][]byte{[]byte(text)}
 	// TODO(sissel): Send a client request, verify response
 	response, err := c.Send(service, body[:])
+	//for i, x := range response { log.Printf("Client sending): frame %d: %v (%s)\n", i, x, string(x)) }
 	if err != nil {
 		t.Errorf("Failure in request to service `%s`: %s\n", service, err)
 		return
@@ -48,6 +51,76 @@ func TestEndToEnd(t *testing.T) {
 	}
 	if !bytes.Equal(response[0], HELLO_GREETING) {
 		t.Errorf("Response did not match `%s`", string(HELLO_GREETING))
+		return
+	}
+}
+
+type HeartbeatChecker struct {
+	callback func(time.Time)
+}
+
+func (h *HeartbeatChecker) Request(request [][]byte) (response [][]byte, err error) {
+	return
+}
+func (h *HeartbeatChecker) Heartbeat() {
+	h.callback(time.Now())
+}
+func (h *HeartbeatChecker) Disconnect() {}
+
+func TestBrokerToWorkerHeartbeat(t *testing.T) {
+	broker_address := fmt.Sprintf("inproc://%s", randomHex())
+	service := randomHex()
+	w := NewWorker(broker_address, service)
+	b, err := NewBroker(broker_address)
+	if err != nil {
+		t.Errorf("NewBroker(%v) failed: %s", broker_address, err)
+		return
+	}
+
+	b.HeartbeatInterval = 10 * time.Millisecond
+
+	beats := make(chan time.Time)
+	hc := &HeartbeatChecker{
+		callback: func(now time.Time) {
+			log.Printf("Heartbeat!")
+			beats <- now
+		},
+	}
+	start := time.Now()
+	go w.Run(hc)
+	go b.Run()
+
+	heartbeatTime := <-beats
+	if !heartbeatTime.After(start) {
+		t.Errorf("Heartbeat time occurred in the past?!")
+		return
+	}
+}
+
+func TestWorkerToBrokerHeartbeat(t *testing.T) {
+	broker_address := fmt.Sprintf("inproc://%s", randomHex())
+	service := randomHex()
+	w := NewWorker(broker_address, service)
+	b, err := NewBroker(broker_address)
+	if err != nil {
+		t.Errorf("NewBroker(%v) failed: %s", broker_address, err)
+		return
+	}
+
+	b.HeartbeatInterval = 10 * time.Millisecond
+	w.HeartbeatInterval = b.HeartbeatInterval
+
+	beats := make(chan time.Time)
+	b.HeartbeatCallback = func(entry *WorkerEntry) {
+		beats <- time.Now()
+	}
+	start := time.Now()
+	go w.Run(&HelloGreeter{})
+	go b.Run()
+
+	heartbeatTime := <-beats
+	if !heartbeatTime.After(start) {
+		t.Errorf("Heartbeat time occurred in the past?!")
 		return
 	}
 }

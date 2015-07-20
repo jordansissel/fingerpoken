@@ -14,12 +14,15 @@ type Broker struct {
 	workers             map[string]*WorkerEntry
 	HeartbeatInterval   time.Duration
 	MaxMissedHeartbeats int64
+
+	HeartbeatCallback func(*WorkerEntry)
 }
 
 type WorkerEntry struct {
-	expiration time.Time
-	service    string
-	address    []byte
+	expiration            time.Time
+	service               string
+	address               []byte
+	nextSendHeartbeatTime time.Time
 }
 
 func NewBroker(endpoint string) (b *Broker, err error) {
@@ -46,12 +49,22 @@ func (b *Broker) Run() {
 	}
 
 	for {
-		sock := poller.Wait(1000)
-		if sock == nil {
-			// Timeout, do any maintenance tasks?
-			// TODO(sissel): Purge any expired workers
-		} else {
-			b.Once(sock)
+		s := czmqPollerSafeWait(poller, durationInMilliseconds(b.HeartbeatInterval))
+		if s != nil {
+			b.Once(s)
+		}
+
+		for _, entry := range b.workers {
+			if time.Now().After(entry.expiration) {
+				// We haven't seen this worker for too long, let's delete it.
+				log.Printf("Worker hasn't been seen in a while, removing it.")
+				b.removeWorker(entry.address)
+			} else {
+				// Healthy worker. Let's tell the worker we're still here if needed.
+				if time.Now().After(entry.nextSendHeartbeatTime) {
+					b.sendHeartbeat(entry)
+				}
+			}
 		}
 	}
 }
@@ -80,7 +93,7 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 		log.Printf("Broker(via Worker): frame %d: %v (%s)\n", i, x, string(x))
 	}
 	//
-	if len(frames[2]) == 0 || len(frames[3]) == 0 {
+	if len(frames) < 3 || len(frames[1]) != 6 || len(frames[2]) != 1 {
 		log.Printf("Broker: Got an invalid worker message. Dropping.")
 		return
 	}
@@ -103,10 +116,13 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 		return
 	}
 
-	entry.heartbeat(b.nextExpiration())
+	entry.recordHeartbeat(b.nextExpiration())
 
 	switch command {
 	case C_HEARTBEAT: // Nothing to do
+		if b.HeartbeatCallback != nil {
+			b.HeartbeatCallback(entry)
+		}
 	case C_DISCONNECT:
 		log.Printf("Broker: Received disconnect from worker %v", address)
 		b.removeWorker(address)
@@ -219,6 +235,26 @@ func (b *Broker) nextExpiration() time.Time {
 	return time.Now().Add(time.Duration(int64(b.HeartbeatInterval) * b.MaxMissedHeartbeats))
 }
 
-func (entry *WorkerEntry) heartbeat(expiration time.Time) {
+func (b *Broker) sendHeartbeat(entry *WorkerEntry) {
+	heartbeat := [][]byte{entry.address}
+	heartbeat = append(heartbeat[:], M_HEARTBEAT[:]...)
+	err := b.sock.SendMessage(heartbeat)
+	if err != nil {
+		log.Printf("Broker: Error sending heartbeat", err)
+		// TODO(sissel): what should we do?
+	}
+}
+
+func (b *Broker) sendDisconnect(entry *WorkerEntry) {
+	disconnect := [][]byte{entry.address}
+	disconnect = append(disconnect[:], M_DISCONNECT[:]...)
+	err := b.sock.SendMessage(disconnect)
+	if err != nil {
+		log.Printf("Broker: Error sending disconnect", err)
+		// TODO(sissel): what should we do?
+	}
+}
+
+func (entry *WorkerEntry) recordHeartbeat(expiration time.Time) {
 	entry.expiration = expiration
 }
