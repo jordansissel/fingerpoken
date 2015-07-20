@@ -64,12 +64,12 @@ func TestClientSendFraming(t *testing.T) {
 		return
 	}
 
-	if !bytes.Equal(frames[2], MDP_CLIENT) {
-		t.Errorf("Majordomo request frame #2 must be `%s`, got `%s`\n", string(MDP_CLIENT), string(frames[1]))
+	if !bytes.Equal(frames[2], mdp_CLIENT) {
+		t.Errorf("Majordomo request frame #2 must be `%s`, got `%s`\n", string(mdp_CLIENT), string(frames[1]))
 		return
 	}
 
-	if len(frames[3]) != 1 || Command(frames[3][0]) != C_REQUEST {
+	if len(frames[3]) != 1 || command(frames[3][0]) != c_REQUEST {
 		t.Errorf("Majordomo request frame #3 must be REQUEST")
 		return
 	}

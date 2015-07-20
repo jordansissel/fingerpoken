@@ -43,15 +43,15 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 		s := czmqPollerSafeWait(w.poller, durationInMilliseconds(w.HeartbeatInterval))
 		if s != nil {
 			// Data is ready, let's process something.
-			client, command, body, err := w.readRequest()
+			client, cmd, body, err := w.readRequest()
 			if err != nil {
 				log.Printf("Worker: Error reading request: %s\n", err)
 				w.Reset()
 				continue
 			}
-			err = w.handleCommand(requestHandler, client, command, body)
+			err = w.handleCommand(requestHandler, client, cmd, body)
 			if err != nil {
-				log.Printf("Error processing command %s", command)
+				log.Printf("Error processing cmd %s", cmd)
 				w.Reset()
 			}
 		}
@@ -69,20 +69,20 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 	}
 }
 
-func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, command Command, body [][]byte) error {
-	// Got a command from the broker, let's update the expiration.
+func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, cmd command, body [][]byte) error {
+	// Got a cmd from the broker, let's update the expiration.
 	w.brokerExpiration = w.nextExpiration()
 
-	switch command {
+	switch cmd {
 	default:
-		log.Printf("Worker: Got an invalid command from broker. Will reset connection. (command: %v)", command)
+		log.Printf("Worker: Got an invalid cmd from broker. Will reset connection. (cmd: %v)", cmd)
 		w.Reset()
-	case C_HEARTBEAT:
+	case c_HEARTBEAT:
 		requestHandler.Heartbeat()
-	case C_DISCONNECT:
+	case c_DISCONNECT:
 		requestHandler.Disconnect()
 		w.sock.Destroy()
-	case C_REQUEST:
+	case c_REQUEST:
 		// The spec supports multiple frames for a request message. Let's support that.
 		reply_body, err := requestHandler.Request(body)
 		if err != nil {
@@ -92,8 +92,8 @@ func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, com
 
 		err = w.sock.SendMessage(append([][]byte{
 			[]byte{},
-			MDP_WORKER,
-			[]byte{byte(C_REPLY)},
+			mdp_WORKER,
+			[]byte{byte(c_REPLY)},
 			client,
 			[]byte{}, // SPEC Frame 4: Empty (zero bytes, envelope delimiter)
 		}, reply_body...),
@@ -102,12 +102,12 @@ func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, com
 			log.Printf("Worker: Error sending reply: %s\n", err)
 			return err
 		}
-	} // switch command
+	} // switch cmd
 
 	return nil
 }
 
-func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, err error) {
+func (w *Worker) readRequest() (client []byte, cmd command, body [][]byte, err error) {
 	frames, err := w.sock.RecvMessage()
 	if err != nil {
 		return
@@ -120,8 +120,8 @@ func (w *Worker) readRequest() (client []byte, command Command, body [][]byte, e
 		return
 	}
 
-	command = Command(frames[2][0])
-	if command == C_REQUEST {
+	cmd = command(frames[2][0])
+	if cmd == c_REQUEST {
 		if len(frames) < 5 {
 			err = fmt.Errorf("Got a request with too-few frames. Expected at least 5, got %d", len(frames))
 			return
@@ -166,8 +166,8 @@ func (w *Worker) ensure_connected() error {
 func (w *Worker) sendReady() (err error) {
 	message := [4][]byte{
 		[]byte{},              // SPEC: Frame 0: Empty frame
-		MDP_WORKER,            // SPEC: Frame 1: "MDPW01" (six bytes, representing MDP/Worker v0.1)
-		[]byte{byte(C_READY)}, // SPEC: Frame 2: 0x01 (one byte, representing READY)
+		mdp_WORKER,            // SPEC: Frame 1: "MDPW01" (six bytes, representing MDP/Worker v0.1)
+		[]byte{byte(c_READY)}, // SPEC: Frame 2: 0x01 (one byte, representing READY)
 		[]byte(w.service),     // SPEC: Frame 3: Service name (printable string)
 	}
 
@@ -181,7 +181,7 @@ func (w *Worker) sendReady() (err error) {
 
 func (w *Worker) sendHeartbeat() (err error) {
 	log.Printf("Worker: Sending heartbeat")
-	err = w.sock.SendMessage(M_HEARTBEAT[:])
+	err = w.sock.SendMessage(m_HEARTBEAT[:])
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func (w *Worker) sendHeartbeat() (err error) {
 }
 
 func (w *Worker) sendDisconnect() (err error) {
-	err = w.sock.SendMessage(M_DISCONNECT[:])
+	err = w.sock.SendMessage(m_DISCONNECT[:])
 	if err != nil {
 		return err
 	}

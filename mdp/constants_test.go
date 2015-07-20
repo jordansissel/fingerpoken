@@ -5,28 +5,28 @@ import (
 )
 
 func TestConstants(t *testing.T) {
-	if string(MDP_CLIENT) != "MDPC01" {
-		t.Errorf("MDP_CLIENT is not correct")
+	if string(mdp_CLIENT) != "MDPC01" {
+		t.Errorf("mdp_CLIENT is not correct")
 	}
 
-	if string(MDP_WORKER) != "MDPW01" {
-		t.Errorf("MDP_WORKER is not correct")
+	if string(mdp_WORKER) != "MDPW01" {
+		t.Errorf("mdp_WORKER is not correct")
 	}
 
-	if C_READY != 0x01 {
-		t.Errorf("READY command has wrong value")
+	if c_READY != 0x01 {
+		t.Errorf("READY cmd has wrong value")
 	}
-	if C_REQUEST != 0x02 {
-		t.Errorf("REQUEST command has wrong value")
+	if c_REQUEST != 0x02 {
+		t.Errorf("REQUEST cmd has wrong value")
 	}
-	if C_REPLY != 0x03 {
-		t.Errorf("REPLY command has wrong value")
+	if c_REPLY != 0x03 {
+		t.Errorf("REPLY cmd has wrong value")
 	}
-	if C_HEARTBEAT != 0x04 {
-		t.Errorf("HEARTBEAT command has wrong value")
+	if c_HEARTBEAT != 0x04 {
+		t.Errorf("HEARTBEAT cmd has wrong value")
 	}
 
-	if C_DISCONNECT != 0x05 {
-		t.Errorf("DISCONNECT command has wrong value")
+	if c_DISCONNECT != 0x05 {
+		t.Errorf("DISCONNECT cmd has wrong value")
 	}
 }

@@ -37,8 +37,8 @@ func (c *Client) Send(service string, body [][]byte) (err error) {
 	// Since we're using a REQ socket, we use a 3-frame message instead of the 4-frame message a DEALER would use.
 	// TODO(sissel): The body can occupy more than 1 frame, let's maybe support that some day?
 	var request [3][]byte = [3][]byte{
-		MDP_CLIENT,
-		[]byte{byte(C_REQUEST)},
+		mdp_CLIENT,
+		[]byte{byte(c_REQUEST)},
 		[]byte(service),
 	}
 
@@ -74,8 +74,8 @@ func (c *Client) Recv() (response [][]byte, err error) {
 		return
 	}
 
-	if !bytes.Equal(reply[0], MDP_CLIENT) {
-		err = fmt.Errorf("Majordomo protocol problem. Expected first frame to be `%s`. Got something else.", string(MDP_CLIENT))
+	if !bytes.Equal(reply[0], mdp_CLIENT) {
+		err = fmt.Errorf("Majordomo protocol problem. Expected first frame to be `%s`. Got something else.", string(mdp_CLIENT))
 		return
 	}
 

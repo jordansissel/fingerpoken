@@ -49,8 +49,8 @@ func TestEndToEnd(t *testing.T) {
 		t.Errorf("Expected %d frames for reply. Got %d frames\n", expected, actual)
 		return
 	}
-	if !bytes.Equal(response[0], HELLO_GREETING) {
-		t.Errorf("Response did not match `%s`", string(HELLO_GREETING))
+	if !bytes.Equal(response[0], helloGreeting) {
+		t.Errorf("Response did not match `%s`", string(helloGreeting))
 		return
 	}
 }

@@ -74,7 +74,7 @@ func (b *Broker) once(sock *czmq.Sock) {
 	}
 
 	address := frames[0]
-	if bytes.Equal(frames[2], MDP_WORKER) {
+	if bytes.Equal(frames[2], mdp_WORKER) {
 		b.handleWorker(address, frames[1:])
 	} else {
 		b.handleClient(address, frames[1:])
@@ -88,19 +88,19 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 		return
 	}
 	// precondition: this is a well formed message that has enough frames and of the right size.
-	command := Command(frames[2][0])
+	cmd := command(frames[2][0])
 
-	// SPEC The broker MUST respond to any valid but unexpected command by sending DISCONNECT
+	// SPEC The broker MUST respond to any valid but unexpected cmd by sending DISCONNECT
 	//
 	// We'll use the presence check `known` in the workers map to determine if the worker has
-	// sent in a READY command. If it hasn't, then it's not a valid worker and we should
+	// sent in a READY cmd. If it hasn't, then it's not a valid worker and we should
 	// tell it to disconnect and ignore it.
 	entry, known := b.getWorkerByAddress(address)
 	if !known {
-		if command == C_READY { // New worker. First command must be READY.
+		if cmd == c_READY { // New worker. First cmd must be READY.
 			b.addWorker(address, string(frames[3]))
 		} else {
-			log.Printf("Broker: Received command from unknown worker (one that has not sent READY yet). Will disconnect it.")
+			log.Printf("Broker: Received cmd from unknown worker (one that has not sent READY yet). Will disconnect it.")
 			// TODO(sissel): Send disconnect
 		}
 		return
@@ -108,26 +108,26 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 
 	entry.recordHeartbeat(b.nextExpiration())
 
-	switch command {
-	case C_HEARTBEAT: // Nothing to do
+	switch cmd {
+	case c_HEARTBEAT: // Nothing to do
 		if b.HeartbeatCallback != nil {
 			b.HeartbeatCallback(entry)
 		}
-	case C_DISCONNECT:
+	case c_DISCONNECT:
 		log.Printf("Broker: Received disconnect from worker %v", address)
 		b.removeWorker(address)
-	case C_REQUEST:
+	case c_REQUEST:
 		log.Printf("Broker: received REQUEST from a worker. This is not valid. Workers don't make requests.")
 		b.removeWorker(address)
 		// TODO(sissel): Send Disconnect
 		return
-	case C_REPLY:
+	case c_REPLY:
 		destination := frames[3]
 		log.Printf("Broker: Received reply from worker. Destination %v", destination)
 		replyheader := [4][]byte{
 			destination,
 			[]byte{},
-			MDP_CLIENT,
+			mdp_CLIENT,
 			[]byte(entry.service),
 		}
 		client_reply := append(replyheader[:], frames[4:]...)
@@ -177,9 +177,9 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 		return
 	}
 
-	command := Command(frames[2][0])
-	if command != C_REQUEST {
-		log.Printf("Broker: Received invalid command (%s) from client. Dropping message.\n", command)
+	cmd := command(frames[2][0])
+	if cmd != c_REQUEST {
+		log.Printf("Broker: Received invalid cmd (%s) from client. Dropping message.\n", cmd)
 		return
 	}
 
@@ -201,8 +201,8 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 	worker_header := [][]byte{
 		entry.address,
 		[]byte{},
-		MDP_WORKER,
-		[]byte{byte(C_REQUEST)},
+		mdp_WORKER,
+		[]byte{byte(c_REQUEST)},
 		address,
 		[]byte{},
 	}
@@ -221,7 +221,7 @@ func (b *Broker) nextExpiration() time.Time {
 
 func (b *Broker) sendHeartbeat(entry *WorkerEntry) {
 	heartbeat := [][]byte{entry.address}
-	heartbeat = append(heartbeat[:], M_HEARTBEAT[:]...)
+	heartbeat = append(heartbeat[:], m_HEARTBEAT[:]...)
 	err := b.sock.SendMessage(heartbeat)
 	if err != nil {
 		log.Printf("Broker: Error sending heartbeat", err)
@@ -231,7 +231,7 @@ func (b *Broker) sendHeartbeat(entry *WorkerEntry) {
 
 func (b *Broker) sendDisconnect(entry *WorkerEntry) {
 	disconnect := [][]byte{entry.address}
-	disconnect = append(disconnect[:], M_DISCONNECT[:]...)
+	disconnect = append(disconnect[:], m_DISCONNECT[:]...)
 	err := b.sock.SendMessage(disconnect)
 	if err != nil {
 		log.Printf("Broker: Error sending disconnect", err)

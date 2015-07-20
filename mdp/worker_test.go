@@ -109,8 +109,8 @@ func TestWorkerRun(t *testing.T) {
 	err = sock.SendMessage([][]byte{
 		frames[0], // router/dealer ID
 		[]byte{},
-		MDP_WORKER,
-		[]byte{byte(C_REQUEST)},
+		mdp_WORKER,
+		[]byte{byte(c_REQUEST)},
 		[]byte(client),
 		[]byte{}, // SPEC Frame 4: Empty (zero bytes, envelope delimiter)
 		[]byte("hello world"),
