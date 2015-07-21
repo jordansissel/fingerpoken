@@ -80,7 +80,7 @@ func (c *Client) Recv() (response [][]byte, err error) {
 	}
 
 	// Should we bother checking the `service` frame (reply[1]) ?
-	response = reply[3:]
+	response = reply[2:]
 	return
 }
 

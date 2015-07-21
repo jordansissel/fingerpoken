@@ -130,7 +130,7 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 			mdp_CLIENT,
 			[]byte(entry.service),
 		}
-		client_reply := append(replyheader[:], frames[4:]...)
+		client_reply := append(replyheader[:], frames[5:]...)
 		//for i, x := range client_reply { log.Printf("Broker(reply to Client): frame %d: %v (%s)\n", i, x, string(x)) }
 		err := b.sock.SendMessage(client_reply)
 		if err != nil {
@@ -206,7 +206,7 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 		address,
 		[]byte{},
 	}
-	message := append(worker_header[:], frames[2:]...)
+	message := append(worker_header[:], frames[3:]...)
 	//for i, x := range message { log.Printf("Broker(-> Worker): frame %d: %v (%s)\n", i, x, string(x)) }
 	err = b.sock.SendMessage(message)
 	if err != nil {
