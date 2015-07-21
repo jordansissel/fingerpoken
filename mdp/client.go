@@ -43,7 +43,9 @@ func (c *Client) Send(service string, body [][]byte) (err error) {
 	}
 
 	frames := append(request[:], body...)
-	for j, x := range frames { log.Printf("Client: frame %d: %v (%s)\n", j, x, string(x)) }
+	for j, x := range frames {
+		log.Printf("Client: frame %d: %v (%s)\n", j, x, string(x))
+	}
 	err = c.sock.SendMessage(frames)
 	if err != nil {
 		log.Printf("Client: Error sending message: %s\n", err)
@@ -117,40 +119,39 @@ func (c *Client) SendRecv(service string, body [][]byte) (response [][]byte, err
 }
 
 func (c *Client) Destroy() {
-  c.close()
-  c.destroyed = true
+	c.close()
+	c.destroyed = true
 }
 
 func (c *Client) reset() error {
-  c.close()
-  return c.ensure_connected()
+	c.close()
+	return c.ensure_connected()
 }
 
 func (c *Client) close() {
-  if c.sock != nil {
-    c.sock.Destroy()
-    c.sock = nil
-  }
-  if c.poller != nil {
-    c.poller.Destroy()
-    c.poller = nil
-  }
+	if c.sock != nil {
+		c.sock.Destroy()
+		c.sock = nil
+	}
+	if c.poller != nil {
+		c.poller.Destroy()
+		c.poller = nil
+	}
 }
 
-
 func (c *Client) ensure_connected() error {
-  if c.sock != nil {
-    return nil
-  }
+	if c.sock != nil {
+		return nil
+	}
 
-  var err error
-  c.sock, err = czmq.NewReq(c.broker)
-  if err != nil {
-    return err
-  }
-  c.poller, err = czmq.NewPoller(c.sock)
-  if err != nil {
-    return err
-  }
-  return nil
+	var err error
+	c.sock, err = czmq.NewReq(c.broker)
+	if err != nil {
+		return err
+	}
+	c.poller, err = czmq.NewPoller(c.sock)
+	if err != nil {
+		return err
+	}
+	return nil
 }

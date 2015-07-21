@@ -51,9 +51,7 @@ func TestClientSendFraming(t *testing.T) {
 		return
 	}
 
-	for i, x := range frames {
-		fmt.Printf("%d: %v (%s) \n", i, x, string(x))
-	}
+	//for i, x := range frames { fmt.Printf("%d: %v (%s) \n", i, x, string(x)) }
 
 	// frames[0] is the client/session id for the router socket, ignore it.
 	// frames[1 ... ] are the actual request
@@ -70,8 +68,8 @@ func TestClientSendFraming(t *testing.T) {
 	}
 
 	//if len(frames[3]) != 1 || command(frames[3][0]) != c_REQUEST {
-		//t.Errorf("Majordomo request frame #3 must be REQUEST")
-		//return
+	//t.Errorf("Majordomo request frame #3 must be REQUEST")
+	//return
 	//}
 
 	if !bytes.Equal(frames[3], []byte(service)) {

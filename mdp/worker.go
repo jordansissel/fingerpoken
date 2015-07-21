@@ -65,7 +65,7 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 		if now.After(nextHeartbeat) {
 			// It's time to send a heartbeat to the broker.
 			w.sendHeartbeat()
-      nextHeartbeat = time.Now().Add(w.HeartbeatInterval)
+			nextHeartbeat = time.Now().Add(w.HeartbeatInterval)
 		}
 	}
 }
@@ -91,14 +91,16 @@ func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, cmd
 			return err
 		}
 
-		err = w.sock.SendMessage(append([][]byte{
+		frames := append([][]byte{
 			[]byte{},
 			mdp_WORKER,
 			[]byte{byte(c_REPLY)},
 			client,
 			[]byte{}, // SPEC Frame 4: Empty (zero bytes, envelope delimiter)
-		}, reply_body...),
-		)
+		}, reply_body...)
+
+		//for i, x := range frames { log.Printf("Worker(to Broker): frame %d: %v (%s)\n", i, x, string(x)) }
+		err = w.sock.SendMessage(frames)
 		if err != nil {
 			log.Printf("Worker: Error sending reply: %s\n", err)
 			return err
@@ -129,6 +131,9 @@ func (w *Worker) readRequest() (client []byte, cmd command, body [][]byte, err e
 		}
 		client = frames[3]
 		body = frames[5:]
+		for i, x := range body {
+			log.Printf("Worker(request body): frame %d: %v (%s)\n", i, x, string(x))
+		}
 	}
 	return
 }
@@ -181,7 +186,7 @@ func (w *Worker) sendReady() (err error) {
 }
 
 func (w *Worker) sendHeartbeat() (err error) {
-	log.Printf("Worker: Sending heartbeat")
+	//log.Printf("Worker: Sending heartbeat")
 	err = w.sock.SendMessage(m_HEARTBEAT[:])
 	if err != nil {
 		return err

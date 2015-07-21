@@ -170,7 +170,7 @@ func (b *Broker) removeWorker(address []byte) {
 }
 
 func (b *Broker) handleClient(address []byte, frames [][]byte) {
-	for i, x := range frames { log.Printf("Broker(via Client %v): frame %d: %v (%s)\n", address, i, x, string(x)) }
+	//for i, x := range frames { log.Printf("Broker(via Client %v): frame %d: %v (%s)\n", address, i, x, string(x)) }
 	err := validateClientHeader(frames)
 	if err != nil {
 		log.Printf("Broker: Received invalid request from client. Dropping message.\n")
@@ -179,8 +179,8 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 
 	//cmd := command(frames[2][0])
 	//if cmd != c_REQUEST {
-		//log.Printf("Broker: Received invalid cmd (%s) from client. Dropping message.\n", cmd)
-		//return
+	//log.Printf("Broker: Received invalid cmd (%s) from client. Dropping message.\n", cmd)
+	//return
 	//}
 
 	service := string(frames[2])
@@ -197,7 +197,6 @@ func (b *Broker) handleClient(address []byte, frames [][]byte) {
 		return
 	}
 
-	// TODO(sissel): Send the worker the request
 	worker_header := [][]byte{
 		entry.address,
 		[]byte{},
@@ -220,7 +219,7 @@ func (b *Broker) nextExpiration() time.Time {
 }
 
 func (b *Broker) sendHeartbeat(entry *workerEntry) {
-	log.Printf("Broker: Sending heartbeat")
+	//log.Printf("Broker: Sending heartbeat")
 	heartbeat := [][]byte{entry.address}
 	heartbeat = append(heartbeat[:], m_HEARTBEAT[:]...)
 	err := b.sock.SendMessage(heartbeat)
