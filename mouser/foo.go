@@ -5,8 +5,11 @@ import (
 	"github.com/BurntSushi/xgb"
 	"github.com/BurntSushi/xgb/xproto"
 	"github.com/BurntSushi/xgb/xtest"
-	consul "github.com/hashicorp/consul/api"
-	"github.com/jordansissel/fingerpoken/util"
+	"os"
+
+	//consul "github.com/hashicorp/consul/api"
+	//"github.com/jordansissel/fingerpoken/util"
+	"github.com/jordansissel/fingerpoken/mdp"
 )
 
 type Mouse struct {
@@ -44,15 +47,12 @@ func (m *Mouse) Move(args *MoveArgs, reply *int) error {
 }
 
 func main() {
-	client, _ := consul.NewClient(consul.DefaultConfig())
-	zj, err := util.NewZJServer()
-	if err != nil {
-		fmt.Printf("NewZJServer failure: %s\n", err)
-		panic("!")
-	}
-	zj.RegisterWithConsul(client)
-	zj.Register(NewMouse())
+	broker_endpoint := os.Args[1]
+	service := os.Args[2]
+	w := mdp.NewJSONRPCWorker(broker_endpoint, service)
+	w.Register(NewMouse())
+	w.Run()
 
-	err = zj.Loop()
-	fmt.Printf("Loop: %s\n", err)
+	//err = zj.Loop()
+	//fmt.Printf("Loop: %s\n", err)
 }
