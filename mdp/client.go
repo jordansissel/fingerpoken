@@ -36,14 +36,14 @@ func (c *Client) Send(service string, body [][]byte) (err error) {
 
 	// Since we're using a REQ socket, we use a 3-frame message instead of the 4-frame message a DEALER would use.
 	// TODO(sissel): The body can occupy more than 1 frame, let's maybe support that some day?
-	var request [3][]byte = [3][]byte{
+	var request [2][]byte = [2][]byte{
 		mdp_CLIENT,
-		[]byte{byte(c_REQUEST)},
+		//[]byte{byte(c_REQUEST)},
 		[]byte(service),
 	}
 
 	frames := append(request[:], body...)
-	//for j, x := range frames { log.Printf("Client (try %d): frame %d: %v (%s)\n", i, j, x, string(x)) }
+	for j, x := range frames { log.Printf("Client: frame %d: %v (%s)\n", j, x, string(x)) }
 	err = c.sock.SendMessage(frames)
 	if err != nil {
 		log.Printf("Client: Error sending message: %s\n", err)

@@ -69,22 +69,22 @@ func TestClientSendFraming(t *testing.T) {
 		return
 	}
 
-	if len(frames[3]) != 1 || command(frames[3][0]) != c_REQUEST {
-		t.Errorf("Majordomo request frame #3 must be REQUEST")
-		return
-	}
+	//if len(frames[3]) != 1 || command(frames[3][0]) != c_REQUEST {
+		//t.Errorf("Majordomo request frame #3 must be REQUEST")
+		//return
+	//}
 
-	if !bytes.Equal(frames[4], []byte(service)) {
+	if !bytes.Equal(frames[3], []byte(service)) {
 		t.Errorf("Majordomo request frame #4 must be a service name. Expected `%s`, got `%s`", service, string(frames[4]))
 		return
 	}
 
-	if expected, actual := len(payload), len(frames[5:]); expected != actual {
+	if expected, actual := len(payload), len(frames[4:]); expected != actual {
 		t.Errorf("Expected body with %d frames, got %d frames\n", expected, actual)
 		return
 	}
 
-	if !bytes.Equal(frames[5], payload[0]) {
+	if !bytes.Equal(frames[4], payload[0]) {
 		t.Errorf("Majordomo request body did not match.")
 		return
 	}

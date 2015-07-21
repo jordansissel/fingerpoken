@@ -65,6 +65,7 @@ func (w *Worker) Run(requestHandler RequestHandler) error {
 		if now.After(nextHeartbeat) {
 			// It's time to send a heartbeat to the broker.
 			w.sendHeartbeat()
+      nextHeartbeat = time.Now().Add(w.HeartbeatInterval)
 		}
 	}
 }
