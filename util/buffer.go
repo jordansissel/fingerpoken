@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-type buffer struct {
+type Buffer struct {
 	io.Reader
 	io.Writer
 	io.Closer

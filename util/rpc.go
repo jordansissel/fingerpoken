@@ -63,7 +63,7 @@ func (zj *ZJServer) Once() (err error) {
 
 	input := bytes.NewBuffer(message[0])
 	output := &bytes.Buffer{}
-	codec := jsonrpc.NewServerCodec(buffer{Reader: input, Writer: output, Closer: ioutil.NopCloser(nil)})
+	codec := jsonrpc.NewServerCodec(Buffer{Reader: input, Writer: output, Closer: ioutil.NopCloser(nil)})
 	err = zj.rpc.ServeRequest(codec)
 	if err != nil {
 		// If the rpc call fails, do we want to return an error? I don't think so.
