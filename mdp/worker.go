@@ -131,9 +131,7 @@ func (w *Worker) readRequest() (client []byte, cmd command, body [][]byte, err e
 		}
 		client = frames[3]
 		body = frames[5:]
-		for i, x := range body {
-			log.Printf("Worker(request body): frame %d: %v (%s)\n", i, x, string(x))
-		}
+		//for i, x := range body { log.Printf("Worker(request body): frame %d: %v (%s)\n", i, x, string(x)) }
 	}
 	return
 }
