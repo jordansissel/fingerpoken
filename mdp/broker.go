@@ -35,6 +35,14 @@ func NewBroker(endpoint string) (b *Broker, err error) {
 	return
 }
 
+func (b *Broker) Bind(endpoint string) (int, error) {
+	return b.sock.Bind(endpoint)
+}
+
+func (b *Broker) Unbind(endpoint string) error {
+	return b.sock.Unbind(endpoint)
+}
+
 func (b *Broker) Run() {
 	poller, err := czmq.NewPoller(b.sock)
 	if err != nil {
