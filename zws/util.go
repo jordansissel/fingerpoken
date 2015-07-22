@@ -1,7 +1,6 @@
 package zws
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	czmq "github.com/zeromq/goczmq"
 	"log"
@@ -151,7 +150,7 @@ func ProxyReqRep1(ws *websocket.Conn, zmq *czmq.Sock) error {
 		}
 		if messageType != websocket.TextMessage {
 			log.Printf("Got unexpected message type: %s", messageType)
-			return fmt.Errorf("Unexpected message type: %d", messageType)
+			return &InvalidMessageTypeError{messageType}
 		}
 
 		flags := czmq.FlagNone
@@ -163,7 +162,7 @@ func ProxyReqRep1(ws *websocket.Conn, zmq *czmq.Sock) error {
 			flags |= czmq.FlagMore
 		default:
 			log.Printf("Got an invalid MORE frame value: %c", more)
-			return fmt.Errorf("Invalid MORE frame: %c", more)
+			return &InvalidMoreFlagError{more}
 		}
 
 		log.Printf("Forwarding 1 frame: final(%s) - %s", message[0] == FINAL_FRAME, string(message[1:]))

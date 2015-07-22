@@ -18,22 +18,27 @@ func NewZWS(endpoint_prefix string, w http.ResponseWriter, r *http.Request) (*ZW
 	query := r.URL.Query()
 	socket_type_name, ok := query["type"]
 	if !ok {
-		return nil, fmt.Errorf("Request is missing `?type=SOCKET_TYPE` from path.")
+		return nil, &ZWSRequestMissingTypeParameterError{r.URL}
 	}
 
 	number, err := ParseSocketType(socket_type_name[0])
 	if err != nil {
-		return nil, fmt.Errorf("`type=%s`: %s", socket_type_name[0], err)
+		return nil, &ZWSRequestInvalidTypeParameterError{socket_type_name[0], err}
 	}
 	socket_type := SocketType(number)
 
 	if !socket_type.isValid() {
-		return nil, fmt.Errorf("`type=%s` is not valid (%s)", socket_type_name, socket_type)
+		return nil, &ZWSRequestInvalidTypeParameterError{socket_type_name[0], err}
 	}
 
-	zmq, err := socket_type.Create(fmt.Sprintf("%s-%s", endpoint_prefix, socket_type.EndpointSuffix()))
+	endpoint_suffix, err := socket_type.EndpointSuffix()
 	if err != nil {
-		return nil, fmt.Errorf("socket creation failed: %s", err)
+		return nil, err
+	}
+
+	zmq, err := socket_type.Create(fmt.Sprintf("%s-%s", endpoint_prefix, endpoint_suffix))
+	if err != nil {
+		return nil, &ZeroMQSocketCreationError{err}
 	}
 
 	ws, err := upgrade(w, r)
