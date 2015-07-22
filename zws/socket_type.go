@@ -27,6 +27,7 @@ const (
 	INVALID = iota
 	REQ     = iota
 	DEALER  = iota
+	SUB     = iota
 	// TODO(sissel): Fill in more as we support them.
 )
 
@@ -36,6 +37,8 @@ func ParseSocketType(name string) (SocketType, error) {
 		return REQ, nil
 	case "dealer":
 		return DEALER, nil
+	case "sub":
+		return SUB, nil
 	}
 	return INVALID, fmt.Errorf("Invalid socket type: %s", name)
 }
@@ -46,6 +49,8 @@ func (s *SocketType) String() string {
 		return "<REQ>"
 	case DEALER:
 		return "<DEALER>"
+	case SUB:
+		return "<SUB>"
 	}
 	return "<INVALID_SOCKET 0x%x>"
 }
@@ -56,13 +61,15 @@ func (s *SocketType) EndpointSuffix() (string, error) {
 		return "req", nil
 	case DEALER:
 		return "dealer", nil
+	case SUB:
+		return "sub", nil
 	}
 	return "", &InvalidSocketTypeError{*s}
 }
 
 func (s *SocketType) isValid() bool {
 	switch *s {
-	case REQ, DEALER:
+	case REQ, DEALER, SUB:
 		return true
 	}
 
@@ -76,6 +83,8 @@ func (s *SocketType) Create(endpoint string) (sock *czmq.Sock, err error) {
 		return czmq.NewReq(endpoint)
 	case DEALER:
 		return czmq.NewDealer(endpoint)
+	case SUB:
+		return czmq.NewSub(endpoint, "")
 	}
 
 	return nil, &InvalidSocketTypeError{*s}
