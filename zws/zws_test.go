@@ -22,7 +22,7 @@ func TestZWS(t *testing.T) {
 			if err != nil {
 				log.Fatalf("rep.RecvMessage failed: %s", err)
 			}
-			log.Printf("rep received: %s\n", string(message[0]))
+			log.Printf("rep received: %s\n", string(message))
 			// Echo it back.
 			err = rep.SendFrame(message, flags)
 			if err != nil {
