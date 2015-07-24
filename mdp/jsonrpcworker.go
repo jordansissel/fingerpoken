@@ -23,6 +23,7 @@ import (
 	"log"
 	"net/rpc"
 	"net/rpc/jsonrpc"
+	"reflect"
 )
 
 type JSONRPCWorker struct {
@@ -38,7 +39,25 @@ func NewJSONRPCWorker(broker_endpoint, service string) (j *JSONRPCWorker) {
 }
 
 func (j *JSONRPCWorker) Register(handler interface{}) error {
-	return j.rpc.Register(handler)
+	err := j.rpc.Register(handler)
+	if err != nil {
+		return err
+	}
+
+	typ := reflect.TypeOf(handler)
+	rcvr := reflect.ValueOf(handler)
+	x := reflect.Indirect(rcvr).Type().Name()
+	log.Printf("Register: %s / %s / %s", typ, rcvr, x)
+
+	for m := 0; m < typ.NumMethod(); m++ {
+		method := typ.Method(m)
+		mtype := method.Type
+		log.Printf("Method: %s -- %s", mtype, method.Name)
+		log.Printf("Arg: %s", mtype.In(1))
+		log.Printf("Reply: %s", mtype.In(2))
+	}
+
+	return nil
 }
 
 func (j *JSONRPCWorker) Run() {
