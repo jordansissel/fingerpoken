@@ -124,7 +124,7 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 			b.addWorker(address, string(frames[3]))
 		} else {
 			log.Printf("Broker: Received cmd from unknown worker (one that has not sent READY yet). Will disconnect it.")
-			// TODO(sissel): Send disconnect
+			b.sendDisconnectToAddress(address)
 		}
 		return
 	}
@@ -132,7 +132,7 @@ func (b *Broker) handleWorker(address []byte, frames [][]byte) {
 	entry.recordHeartbeat(b.nextExpiration())
 
 	switch cmd {
-	case c_HEARTBEAT: // Nothing to do
+	case c_HEARTBEAT:
 		if b.HeartbeatCallback != nil {
 			b.HeartbeatCallback(entry)
 		}
@@ -179,6 +179,9 @@ func (b *Broker) getWorkerByAddress(address []byte) (*workerEntry, bool) {
 }
 
 func (b *Broker) getWorkerByService(service string) (*workerEntry, bool) {
+	// TODO(sissel): SPEC: The broker SHOULD serve clients on a fair basis and
+	// SPEC: MAY deliver requests to workers on any basis, including round robin
+	// SPEC: and least-recently used
 	for _, e := range b.workers {
 		if e.service == service {
 			return e, true
@@ -253,7 +256,11 @@ func (b *Broker) sendHeartbeat(entry *workerEntry) {
 }
 
 func (b *Broker) sendDisconnect(entry *workerEntry) {
-	disconnect := [][]byte{entry.address}
+	b.sendDisconnectToAddress(entry.address)
+}
+
+func (b *Broker) sendDisconnectToAddress(address []byte) {
+	disconnect := [][]byte{address}
 	disconnect = append(disconnect[:], m_DISCONNECT[:]...)
 	err := b.sock.SendMessage(disconnect)
 	if err != nil {
