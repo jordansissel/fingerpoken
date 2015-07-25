@@ -52,8 +52,8 @@ type RequestHandler interface {
 
 func (w *Worker) Run(requestHandler RequestHandler) error {
 	w.ensure_connected()
-
 	nextHeartbeat := time.Now().Add(w.HeartbeatInterval)
+	w.brokerExpiration = w.nextExpiration()
 	for {
 		s := czmqPollerSafeWait(w.poller, durationInMilliseconds(w.HeartbeatInterval))
 		if s != nil {
