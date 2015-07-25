@@ -96,7 +96,7 @@ func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, cmd
 	case c_HEARTBEAT:
 		requestHandler.Heartbeat()
 	case c_DISCONNECT:
-    log.Printf("Worker: Received DISCONNECT from broker. Will reset connection")
+		log.Printf("Worker: Received DISCONNECT from broker. Will reset connection")
 		requestHandler.Disconnect()
 		w.Reset()
 	case c_REQUEST:

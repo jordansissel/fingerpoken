@@ -28,7 +28,7 @@ import (
 type Notification struct {
 	Message string `json:"message"`
 	Subtext string `json:"subtext"`
-	Icon string `json:"icon"`
+	Icon    string `json:"icon"`
 }
 
 type JSONRPCNotification struct {
@@ -54,20 +54,20 @@ func main() {
 		endpoints = append(endpoints, push)
 	}
 
-  defer func() {
-    for _, e := range endpoints {
-      e.DestroyClose()
-    }
-  }()
+	defer func() {
+		for _, e := range endpoints {
+			e.DestroyClose()
+		}
+	}()
 
 	stdin := bufio.NewReader(os.Stdin)
 	for {
-    line := Notification{Icon: "info"}
+		line := Notification{Icon: "info"}
 		payload, err := stdin.ReadBytes('\n')
-    if len(payload) == 0 {
-      break
-    }
-    line.Message = string(payload[0:len(payload)-1])
+		if len(payload) == 0 {
+			break
+		}
+		line.Message = string(payload[0 : len(payload)-1])
 		log.Printf("Sending: %s\n", string(line.Message))
 		if err != nil {
 			log.Printf("Error: %s\n", err)

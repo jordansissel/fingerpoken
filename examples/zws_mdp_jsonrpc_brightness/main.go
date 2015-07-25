@@ -16,56 +16,55 @@
 package main
 
 import (
-	"log"
-  "fmt"
-	"os"
+	"fmt"
 	"github.com/jordansissel/fingerpoken/mdp"
-  "io/ioutil"
-  "strconv"
+	"io/ioutil"
+	"log"
+	"os"
+	"strconv"
 )
 
-type Screen struct {}
+type Screen struct{}
 
-type Empty struct {}
+type Empty struct{}
 type BrightnessSetting struct {
-  Percent float64 `json:percent`
+	Percent float64 `json:percent`
 }
-
 
 // TODO(sissel): Read this at runtime
 const MAX_BRIGHTNESS = 1388
 
 func (s *Screen) SetBrightness(args *BrightnessSetting, reply *Empty) error {
-  log.Printf("Setting brightness to %f", args.Percent)
+	log.Printf("Setting brightness to %f", args.Percent)
 
-  brightness := int(args.Percent * MAX_BRIGHTNESS)
-  data := []byte(fmt.Sprintf("%d", brightness))
-  //err := ioutil.WriteFile("/sys/class/backlight/intel_backlight/brightness", data, 0600)
-  fd, err := os.OpenFile("/sys/class/backlight/intel_backlight/brightness", os.O_WRONLY, 0600)
-  if err != nil {
-    return err
-  }
-  defer fd.Close()
-  _, err = fd.Write(data)
-  // TODO(sissel): Check return bytes read.
-  if err != nil {
-    return err
-  }
-  *reply = Empty{}
+	brightness := int(args.Percent * MAX_BRIGHTNESS)
+	data := []byte(fmt.Sprintf("%d", brightness))
+	//err := ioutil.WriteFile("/sys/class/backlight/intel_backlight/brightness", data, 0600)
+	fd, err := os.OpenFile("/sys/class/backlight/intel_backlight/brightness", os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+	_, err = fd.Write(data)
+	// TODO(sissel): Check return bytes read.
+	if err != nil {
+		return err
+	}
+	*reply = Empty{}
 	return nil
 }
 
 func (s *Screen) GetBrightness(args *Empty, reply *BrightnessSetting) error {
-  data, err := ioutil.ReadFile("/sys/class/backlight/intel_backlight/brightness")
-  if err != nil {
-    return err
-  }
-  value, err := strconv.ParseInt(string(data), 10, 32)
-  if err != nil {
-    return err
-  }
+	data, err := ioutil.ReadFile("/sys/class/backlight/intel_backlight/brightness")
+	if err != nil {
+		return err
+	}
+	value, err := strconv.ParseInt(string(data), 10, 32)
+	if err != nil {
+		return err
+	}
 
-  reply.Percent = float64(value) / MAX_BRIGHTNESS
+	reply.Percent = float64(value) / MAX_BRIGHTNESS
 	return nil
 }
 

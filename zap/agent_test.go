@@ -16,11 +16,11 @@
 package zap
 
 import (
+	"bytes"
 	"fmt"
 	czmq "github.com/zeromq/goczmq"
-  "testing"
-  "math/rand"
-  "bytes"
+	"math/rand"
+	"testing"
 )
 
 func randomHex() (value string) {
@@ -31,111 +31,111 @@ func randomHex() (value string) {
 	return
 }
 
-type OpenAccess struct { }
+type OpenAccess struct{}
+
 func (o OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
-  return Success, nil
+	return Success, nil
 }
 
 func TestZAPAllow(t *testing.T) {
-  agent, _ := NewZapAgent()
-  go agent.Run(&OpenAccess{})
-  defer agent.Destroy()
+	agent, _ := NewZapAgent()
+	go agent.Run(&OpenAccess{})
+	defer agent.Destroy()
 
-  domain := randomHex()
-  requestId := randomHex()
-  ip := "1.2.3.4"
-  id := randomHex()
-  mechanism := randomHex()
-  credentials := randomHex()
+	domain := randomHex()
+	requestId := randomHex()
+	ip := "1.2.3.4"
+	id := randomHex()
+	mechanism := randomHex()
+	credentials := randomHex()
 
-  status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
+	status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
 
-  if status != Success {
-    t.Errorf("Expected Success, got %s. %s", status, err)
-    return
-  }
+	if status != Success {
+		t.Errorf("Expected Success, got %s. %s", status, err)
+		return
+	}
 }
 
-type DenyAccess struct { }
+type DenyAccess struct{}
+
 func (d DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
-  return AuthenticationFailure, nil
+	return AuthenticationFailure, nil
 }
 
 func TestZAPDeny(t *testing.T) {
-  agent, _ := NewZapAgent()
-  go agent.Run(&DenyAccess{})
-  defer agent.Destroy()
+	agent, _ := NewZapAgent()
+	go agent.Run(&DenyAccess{})
+	defer agent.Destroy()
 
-  domain := randomHex()
-  requestId := randomHex()
-  ip := "1.2.3.4"
-  id := randomHex()
-  mechanism := randomHex()
-  credentials := randomHex()
+	domain := randomHex()
+	requestId := randomHex()
+	ip := "1.2.3.4"
+	id := randomHex()
+	mechanism := randomHex()
+	credentials := randomHex()
 
-  status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
+	status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
 
-  if status != AuthenticationFailure {
-    t.Errorf("Expected Authentication Failure, got %s. %s", status, err)
-    return
-  }
+	if status != AuthenticationFailure {
+		t.Errorf("Expected Authentication Failure, got %s. %s", status, err)
+		return
+	}
 }
 
 func sendAuthRequest(requestId, domain, ip, id, mechanism, credentials string) (Status, error) {
-  sock, err := czmq.NewReq(ZAP_ENDPOINT)
-  if err != nil {
-    return InternalError, fmt.Errorf("Error creating new REQ for %s: %s", ZAP_ENDPOINT, err)
-  }
+	sock, err := czmq.NewReq(ZAP_ENDPOINT)
+	if err != nil {
+		return InternalError, fmt.Errorf("Error creating new REQ for %s: %s", ZAP_ENDPOINT, err)
+	}
 
-  err = sock.SendMessage([][]byte{
-    []byte(ZAP_VERSION), //The version frame, which SHALL contain the three octets "1.0".
-    []byte(requestId), //The request id, which MAY contain an opaque binary blob.
-    []byte(domain), //The domain, which SHALL contain a string.
-    []byte(ip), //The address, the origin network IP address.
-    []byte(id), //The identity, the connection Identity, if any.
-    []byte(mechanism), //The mechanism, which SHALL contain a string.
-    []byte(credentials), //The credentials, which SHALL be zero or more opaque frames.
-  })
-  if err != nil {
-    return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
-  }
+	err = sock.SendMessage([][]byte{
+		[]byte(ZAP_VERSION), //The version frame, which SHALL contain the three octets "1.0".
+		[]byte(requestId),   //The request id, which MAY contain an opaque binary blob.
+		[]byte(domain),      //The domain, which SHALL contain a string.
+		[]byte(ip),          //The address, the origin network IP address.
+		[]byte(id),          //The identity, the connection Identity, if any.
+		[]byte(mechanism),   //The mechanism, which SHALL contain a string.
+		[]byte(credentials), //The credentials, which SHALL be zero or more opaque frames.
+	})
+	if err != nil {
+		return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
+	}
 
-  reply, err := sock.RecvMessage()
-  //for i, x := range reply { log.Printf("reply %d: %s", i, string(x)) }
+	reply, err := sock.RecvMessage()
+	//for i, x := range reply { log.Printf("reply %d: %s", i, string(x)) }
 
-  if err != nil {
-    return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
-  }
+	if err != nil {
+		return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
+	}
 
-  // SPEC: The version frame, which SHALL contain the three octets "1.0".
-  if !bytes.Equal(reply[0], []byte(ZAP_VERSION)) { 
-    return InternalError, fmt.Errorf("Expected first frame to be `%s`.", ZAP_VERSION)
-  }
+	// SPEC: The version frame, which SHALL contain the three octets "1.0".
+	if !bytes.Equal(reply[0], []byte(ZAP_VERSION)) {
+		return InternalError, fmt.Errorf("Expected first frame to be `%s`.", ZAP_VERSION)
+	}
 
-  // SPEC: The request id, which MAY contain an opaque binary blob.
-  if !bytes.Equal(reply[1], []byte(requestId)) {
-    return InternalError, fmt.Errorf("Request ID did not match")
-  }
+	// SPEC: The request id, which MAY contain an opaque binary blob.
+	if !bytes.Equal(reply[1], []byte(requestId)) {
+		return InternalError, fmt.Errorf("Request ID did not match")
+	}
 
-  // SPEC: The status code, which SHALL contain a string.
-  status := Status(reply[2])
-  reason := string(reply[3])
-  switch status {
-  case Success:
-    return status, nil
-  case TemporaryError:
-    return status, fmt.Errorf("Temporary Error: %s", reason)
-  case AuthenticationFailure:
-    return status, fmt.Errorf("Authentication Failure: %s", reason)
-  case InternalError:
-    return status, fmt.Errorf("Internal Server Error: %s", reason)
-  default:
-    return status, fmt.Errorf("Invalid status code: %s", status)
-  }
+	// SPEC: The status code, which SHALL contain a string.
+	status := Status(reply[2])
+	reason := string(reply[3])
+	switch status {
+	case Success:
+		return status, nil
+	case TemporaryError:
+		return status, fmt.Errorf("Temporary Error: %s", reason)
+	case AuthenticationFailure:
+		return status, fmt.Errorf("Authentication Failure: %s", reason)
+	case InternalError:
+		return status, fmt.Errorf("Internal Server Error: %s", reason)
+	default:
+		return status, fmt.Errorf("Invalid status code: %s", status)
+	}
 
-
-  // SPEC: The status text, which MAY contain a string.
-  // SPEC: The user id, which SHALL contain a string.
-  // SPEC: The metadata, which MAY contain a blob.
+	// SPEC: The status text, which MAY contain a string.
+	// SPEC: The user id, which SHALL contain a string.
+	// SPEC: The metadata, which MAY contain a blob.
 }
-

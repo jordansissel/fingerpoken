@@ -16,28 +16,28 @@
 package zap
 
 import (
+	"fmt"
 	czmq "github.com/zeromq/goczmq"
-  "fmt"
 )
 
 func czmqSockSafeRecv(sock *czmq.Sock) (frame []byte, more int, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-      err = fmt.Errorf("Panic while calling Recv(): %s", r)
-      return
+			err = fmt.Errorf("Panic while calling Recv(): %s", r)
+			return
 		}
 	}()
-  frame, more, err =  sock.RecvFrame()
-  return
+	frame, more, err = sock.RecvFrame()
+	return
 }
 
 func czmqSockSafeRecvMessage(sock *czmq.Sock) (frames [][]byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
-      err = fmt.Errorf("Panic while calling RecvFrames(): %s", r)
-      return
+			err = fmt.Errorf("Panic while calling RecvFrames(): %s", r)
+			return
 		}
 	}()
-  frames, err =  sock.RecvMessage()
-  return
+	frames, err = sock.RecvMessage()
+	return
 }

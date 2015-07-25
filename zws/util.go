@@ -126,7 +126,7 @@ func HandleZWS(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-  defer zws.zmq.Destroy()
+	defer zws.zmq.Destroy()
 
 	switch zws.socket_type {
 	case REQ:
@@ -234,18 +234,17 @@ func ProxySub(ws *websocket.Conn, zmq *czmq.Sock) {
 	}()
 
 	for {
-    frame, more, err := zmq.RecvFrame()
+		frame, more, err := zmq.RecvFrame()
 		var payload [1]byte
 		if more&czmq.FlagMore == czmq.FlagMore {
 			payload[0] = MORE_FRAME
 		} else {
 			payload[0] = FINAL_FRAME
 		}
-    err = ws.WriteMessage(websocket.TextMessage, append(payload[:], frame...))
-    if err != nil {
-      log.Printf("ws.WriteMessage failed: %s", err)
-      break
-    }
+		err = ws.WriteMessage(websocket.TextMessage, append(payload[:], frame...))
+		if err != nil {
+			log.Printf("ws.WriteMessage failed: %s", err)
+			break
+		}
 	}
 }
-
