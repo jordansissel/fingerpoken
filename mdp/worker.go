@@ -96,8 +96,9 @@ func (w *Worker) handleCommand(requestHandler RequestHandler, client []byte, cmd
 	case c_HEARTBEAT:
 		requestHandler.Heartbeat()
 	case c_DISCONNECT:
+    log.Printf("Worker: Received DISCONNECT from broker. Will reset connection")
 		requestHandler.Disconnect()
-		w.sock.Destroy()
+		w.Reset()
 	case c_REQUEST:
 		// The spec supports multiple frames for a request message. Let's support that.
 		reply_body, err := requestHandler.Request(body)
