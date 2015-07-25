@@ -43,10 +43,11 @@ type ZapAgent struct {
 }
 
 type ZapHandler interface {
-  Authorize(authRequest ZapRequest) (bool, error)
+  Authorize(authRequest ZapRequest) (Status, error)
 }
 
 const ZAP_ENDPOINT = "inproc://zeromq.zap.01"
+const ZAP_VERSION = "1.0"
 
 type Status string
 
@@ -70,6 +71,7 @@ func (zap *ZapAgent) SetHandler(handler ZapHandler) {
 
 func (zap *ZapAgent) Destroy() {
   zap.zmq.Destroy()
+  zap.zmq = nil
 }
 
 func (zap *ZapAgent) Run(handler ZapHandler) error {
@@ -117,28 +119,22 @@ func (zap *ZapAgent) Once(handler ZapHandler) error {
     authRequest.Credentials = message[7:]
   }
 
-  var authorized bool
-  log.Printf("Auth[%s] from %s", authRequest.Mechanism, authRequest.Address)
+  var status Status 
+  //log.Printf("Auth[%s] from %s", authRequest.Mechanism, authRequest.Address)
   if handler == nil {
     // Default deny.
     log.Printf("No ZAP handler was given, so I cannot authorize anything. Denying %S from %s.", authRequest.Mechanism, authRequest.Address)
-    authorized = false
+    status = InternalError
     err = fmt.Errorf("No ZAP handler available")
   } else {
-    authorized, err = handler.Authorize(authRequest)
+    status, err = handler.Authorize(authRequest)
   }
 
-  var status Status
   statusText := ""
-  if err != nil {
+  if status != Success && err != nil {
     // TODO(sissel): differentiate between temporary and internal errors.
-    status = InternalError
     statusText = err.Error()
-  } else if authorized {
-    status = Success
-  } else { // !authorized
-    status = AuthenticationFailure
-  }
+  } 
 
   response := [][]byte{
     replyTo,

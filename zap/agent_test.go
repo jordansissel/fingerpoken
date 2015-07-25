@@ -17,10 +17,10 @@ package zap
 
 import (
 	"fmt"
-  "log"
 	czmq "github.com/zeromq/goczmq"
   "testing"
   "math/rand"
+  "bytes"
 )
 
 func randomHex() (value string) {
@@ -32,18 +32,9 @@ func randomHex() (value string) {
 }
 
 type OpenAccess struct { }
-func (o OpenAccess) Authorize(authRequest ZapRequest) (allow bool, err error) {
-  return true, nil
+func (o OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+  return Success, nil
 }
-
-//var agent *ZapAgent
-
-//func init() {
-  //agent, _ = NewZapAgent()
-  //go agent.Run(&OpenAccess{})
-  ////defer agent.Destroy()
-//}
-
 
 func TestZAPAllow(t *testing.T) {
   agent, _ := NewZapAgent()
@@ -51,41 +42,23 @@ func TestZAPAllow(t *testing.T) {
   defer agent.Destroy()
 
   domain := randomHex()
-  text := randomHex()
+  requestId := randomHex()
+  ip := "1.2.3.4"
+  id := randomHex()
+  mechanism := randomHex()
+  credentials := randomHex()
 
-  server := czmq.NewSock(czmq.Pull)
-  defer server.Destroy()
-  server.SetZapDomain(domain)
-  port, err := server.Bind("tcp://127.0.0.1:*")
-  if err != nil {
-    t.Errorf("Binding server failed; %s", err)
-    return
-  }
+  status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
 
-  client := czmq.NewSock(czmq.Push)
-  defer client.Destroy()
-  client.Connect(fmt.Sprintf("tcp://127.0.0.1:%d", port))
-  err = client.SendFrame([]byte(text), 0)
-  if err != nil {
-    t.Errorf("client.SendFrame failed: %s", err)
-    return
-  }
-
-  output, _, err := server.RecvFrame()
-  if err != nil {
-    t.Errorf("server.RecvFrame() failed: %s", err)
-  }
-
-  if string(output) != text {
-    t.Errorf("Output did not match.")
+  if status != Success {
+    t.Errorf("Expected Success, got %s. %s", status, err)
     return
   }
 }
 
 type DenyAccess struct { }
-func (d DenyAccess) Authorize(authRequest ZapRequest) (allow bool, err error) {
-  log.Printf("DENIED")
-  return false, nil
+func (d DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+  return AuthenticationFailure, nil
 }
 
 func TestZAPDeny(t *testing.T) {
@@ -94,41 +67,75 @@ func TestZAPDeny(t *testing.T) {
   defer agent.Destroy()
 
   domain := randomHex()
-  text := randomHex()
+  requestId := randomHex()
+  ip := "1.2.3.4"
+  id := randomHex()
+  mechanism := randomHex()
+  credentials := randomHex()
 
-  server := czmq.NewSock(czmq.Pull)
-  defer server.Destroy()
-  server.SetZapDomain(domain)
-  port, err := server.Bind("tcp://127.0.0.1:*")
-  if err != nil {
-    t.Errorf("Binding server failed; %s", err)
+  status, err := sendAuthRequest(requestId, domain, ip, id, mechanism, credentials)
+
+  if status != AuthenticationFailure {
+    t.Errorf("Expected Authentication Failure, got %s. %s", status, err)
     return
   }
+}
 
-  client := czmq.NewSock(czmq.Push)
-  defer client.Destroy()
-  err = client.Connect(fmt.Sprintf("tcp://127.0.0.1:%d", port))
+func sendAuthRequest(requestId, domain, ip, id, mechanism, credentials string) (Status, error) {
+  sock, err := czmq.NewReq(ZAP_ENDPOINT)
   if err != nil {
-    t.Errorf("client.Connect failed: %s", err)
-    return
+    return InternalError, fmt.Errorf("Error creating new REQ for %s: %s", ZAP_ENDPOINT, err)
   }
 
-  err = client.SendFrame([]byte(text), 0)
+  err = sock.SendMessage([][]byte{
+    []byte(ZAP_VERSION), //The version frame, which SHALL contain the three octets "1.0".
+    []byte(requestId), //The request id, which MAY contain an opaque binary blob.
+    []byte(domain), //The domain, which SHALL contain a string.
+    []byte(ip), //The address, the origin network IP address.
+    []byte(id), //The identity, the connection Identity, if any.
+    []byte(mechanism), //The mechanism, which SHALL contain a string.
+    []byte(credentials), //The credentials, which SHALL be zero or more opaque frames.
+  })
   if err != nil {
-    t.Errorf("client.SendFrame failed: %s", err)
-    return
+    return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
   }
 
-  output, _, err := server.RecvFrame()
+  reply, err := sock.RecvMessage()
+  //for i, x := range reply { log.Printf("reply %d: %s", i, string(x)) }
+
   if err != nil {
-    t.Errorf("server.RecvFrame() failed: %s", err)
+    return InternalError, fmt.Errorf("Error in SendMessage: %s", err)
   }
 
-  if string(output) != text {
-    t.Errorf("Output did not match.")
-    return
+  // SPEC: The version frame, which SHALL contain the three octets "1.0".
+  if !bytes.Equal(reply[0], []byte(ZAP_VERSION)) { 
+    return InternalError, fmt.Errorf("Expected first frame to be `%s`.", ZAP_VERSION)
+  }
+
+  // SPEC: The request id, which MAY contain an opaque binary blob.
+  if !bytes.Equal(reply[1], []byte(requestId)) {
+    return InternalError, fmt.Errorf("Request ID did not match")
+  }
+
+  // SPEC: The status code, which SHALL contain a string.
+  status := Status(reply[2])
+  reason := string(reply[3])
+  switch status {
+  case Success:
+    return status, nil
+  case TemporaryError:
+    return status, fmt.Errorf("Temporary Error: %s", reason)
+  case AuthenticationFailure:
+    return status, fmt.Errorf("Authentication Failure: %s", reason)
+  case InternalError:
+    return status, fmt.Errorf("Internal Server Error: %s", reason)
+  default:
+    return status, fmt.Errorf("Invalid status code: %s", status)
   }
 
 
+  // SPEC: The status text, which MAY contain a string.
+  // SPEC: The user id, which SHALL contain a string.
+  // SPEC: The metadata, which MAY contain a blob.
 }
 
