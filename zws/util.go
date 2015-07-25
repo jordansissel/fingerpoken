@@ -47,6 +47,9 @@ func upgrade(w http.ResponseWriter, r *http.Request) (conn *websocket.Conn, err 
 		log.Println(err)
 		return
 	}
+
+	// TODO(sissel): Also maybe store the http headers in case we want to use
+	// them later? For per-request authentication?
 	return
 }
 
