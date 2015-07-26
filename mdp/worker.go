@@ -24,11 +24,12 @@ import (
 
 // TODO(sissel): turn this into an interface?
 type Worker struct {
-	sock                *czmq.Sock
-	broker              string
-	service             string
-	HeartbeatInterval   time.Duration
-	MaxMissedHeartbeats int64
+	sock                 *czmq.Sock
+	broker               string
+	service              string
+	HeartbeatInterval    time.Duration
+	MaxMissedHeartbeats  int64
+	CurveServerPublicKey string
 
 	brokerExpiration time.Time
 	poller           *czmq.Poller
@@ -165,11 +166,21 @@ func (w *Worker) ensure_connected() error {
 		return nil
 	}
 
-	var err error
-	w.sock, err = czmq.NewDealer(w.broker)
-	if err != nil {
-		return err
+	w.sock = czmq.NewSock(czmq.Dealer)
+
+	// Setup CURVE if a key is set.
+	if len(w.CurveServerPublicKey) > 0 {
+		cert := czmq.NewCert()
+		cert.Apply(w.sock)
+		w.sock.SetCurveServerkey(w.CurveServerPublicKey)
 	}
+
+	err := w.sock.Connect(w.broker)
+	if err != nil {
+		w.sock.Destroy()
+		w.sock = nil
+	}
+
 	w.poller, err = czmq.NewPoller(w.sock)
 	if err != nil {
 		w.sock.Destroy()

@@ -31,6 +31,9 @@ type Broker struct {
 	MaxMissedHeartbeats int64
 
 	HeartbeatCallback func(*workerEntry)
+
+	CurveCertificate *czmq.Cert
+	setup_complete   bool
 }
 
 func NewBroker(endpoint string) (b *Broker, err error) {
@@ -40,17 +43,13 @@ func NewBroker(endpoint string) (b *Broker, err error) {
 		MaxMissedHeartbeats: 3,
 	}
 	b.workers = make(map[string]*workerEntry)
-
-	b.sock, err = czmq.NewRouter(endpoint)
-	if err != nil {
-		return
-	}
-
-	// Anything else to do?
+	b.sock = czmq.NewSock(czmq.Router)
+	b.endpoint = endpoint
 	return
 }
 
 func (b *Broker) Bind(endpoint string) (int, error) {
+	b.setup()
 	return b.sock.Bind(endpoint)
 }
 
@@ -58,7 +57,29 @@ func (b *Broker) Unbind(endpoint string) error {
 	return b.sock.Unbind(endpoint)
 }
 
+func (b *Broker) setup() {
+	if b.setup_complete {
+		return
+	}
+
+	b.setup_complete = true
+	if b.CurveCertificate != nil {
+		log.Printf("Broker: Enabling CURVE encryption/authentication")
+		b.sock.SetCurveServer(1)
+		b.CurveCertificate.Apply(b.sock)
+	}
+}
+
 func (b *Broker) Run() {
+	b.setup()
+
+	_, err := b.sock.Bind(b.endpoint)
+	if err != nil {
+		b.sock.Destroy()
+		b.sock = nil
+		return
+	}
+	// Anything else to do?
 	poller, err := czmq.NewPoller(b.sock)
 	if err != nil {
 		log.Fatalf("czmq.NewPoller failed: %s\n", err)
