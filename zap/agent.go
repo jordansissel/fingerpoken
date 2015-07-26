@@ -150,6 +150,7 @@ func (zap *ZapAgent) Once(handler ZapHandler) error {
 		[]byte{},               // user id. Optional?
 		[]byte{},               // metadata, optional?
 	}
+	log.Printf("%s auth from %s", status, authRequest.Address)
 
 	err = zap.zmq.SendMessage(response)
 	return err
