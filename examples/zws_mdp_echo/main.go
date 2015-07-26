@@ -16,26 +16,38 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jordansissel/fingerpoken/mdp"
+	"github.com/jordansissel/fingerpoken/zap"
 	"github.com/jordansissel/fingerpoken/zws"
+	czmq "github.com/zeromq/goczmq"
 	"log"
 	"net/http"
 )
 
 func main() {
+	agent, _ := zap.NewZapAgent()
+	go agent.Run(&zap.OpenAccess{})
+	defer agent.Destroy()
+
 	broker_endpoint := "inproc://fancy-req"
 	service := "echo"
+
+	server_cert := czmq.NewCert()
 
 	b, err := mdp.NewBroker(broker_endpoint)
 	if err != nil {
 		log.Fatalf("NewBroker(%s) failed: %s", broker_endpoint, err)
 	}
+	b.CurveCertificate = server_cert
 	port, err := b.Bind("tcp://*:*")
-	log.Printf("Broker available at binding: tcp://x:%d", port)
+	log.Printf("Broker available at binding: tcp://127.0.0.1:%d", port)
 	go b.Run()
 
 	// Start a worker.
-	w := mdp.NewWorker(broker_endpoint, service)
+	local_endpoint := fmt.Sprintf("tcp://127.0.0.1:%d", port)
+	w := mdp.NewWorker(local_endpoint, service)
+	w.CurveServerPublicKey = server_cert.PublicText()
 	go w.Run(&echoWorker{})
 
 	RunHTTP(":8111", "/zws/1.0")
