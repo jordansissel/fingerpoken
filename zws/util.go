@@ -38,6 +38,10 @@ func upgrade(w http.ResponseWriter, r *http.Request) (conn *websocket.Conn, err 
 		},
 	}
 
+	for name, value := range r.Header {
+		log.Printf("Header[%s]: %s", name, value)
+	}
+
 	// TODO(sissel): This would be a good time to authenticate this request.
 	// We could use Cookies or Authentication headers and ask ZAP if the request
 	// should be accepted.
