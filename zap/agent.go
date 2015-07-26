@@ -33,7 +33,7 @@ type ZapRequest struct {
 	Domain      string
 	Address     string
 	Identity    []byte
-	Mechanism   string
+	Mechanism   Mechanism
 	Credentials [][]byte
 }
 
@@ -50,12 +50,17 @@ const ZAP_ENDPOINT = "inproc://zeromq.zap.01"
 const ZAP_VERSION = "1.0"
 
 type Status string
+type Mechanism string
 
 const (
 	Success               Status = "200"
 	TemporaryError        Status = "300"
 	AuthenticationFailure Status = "400"
 	InternalError         Status = "500"
+
+	Curve Mechanism = "CURVE"
+	Null  Mechanism = "NULL"
+	Plain Mechanism = "PLAIN"
 )
 
 func NewZapAgent() (zap *ZapAgent, err error) {
@@ -111,7 +116,7 @@ func (zap *ZapAgent) Once(handler ZapHandler) error {
 		Domain:    string(message[3]),
 		Address:   string(message[4]),
 		Identity:  message[5],
-		Mechanism: string(message[6]),
+		Mechanism: Mechanism(message[6]),
 	}
 
 	if len(message) > 7 {

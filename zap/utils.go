@@ -18,6 +18,7 @@ package zap
 import (
 	"fmt"
 	czmq "github.com/zeromq/goczmq"
+	"log"
 )
 
 func czmqSockSafeRecv(sock *czmq.Sock) (frame []byte, more int, err error) {
@@ -40,4 +41,28 @@ func czmqSockSafeRecvMessage(sock *czmq.Sock) (frames [][]byte, err error) {
 	}()
 	frames, err = sock.RecvMessage()
 	return
+}
+
+type OpenAccess struct{}
+
+func logAuthRequest(authRequest ZapRequest) {
+	log.Printf("Auth[%s] from %s", authRequest.Mechanism, authRequest.Address)
+	switch authRequest.Mechanism {
+	case Curve:
+		log.Printf("Client public key: %v", authRequest.Credentials[0])
+	case Plain:
+		log.Printf("Client user: %s", authRequest.Credentials[0])
+	}
+}
+
+func (o OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+	logAuthRequest(authRequest)
+	return Success, nil
+}
+
+type DenyAccess struct{}
+
+func (d DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+	logAuthRequest(authRequest)
+	return AuthenticationFailure, nil
 }

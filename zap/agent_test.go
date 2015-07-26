@@ -31,12 +31,6 @@ func randomHex() (value string) {
 	return
 }
 
-type OpenAccess struct{}
-
-func (o OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
-	return Success, nil
-}
-
 func TestZAPAllow(t *testing.T) {
 	agent, _ := NewZapAgent()
 	go agent.Run(&OpenAccess{})
@@ -55,12 +49,6 @@ func TestZAPAllow(t *testing.T) {
 		t.Errorf("Expected Success, got %s. %s", status, err)
 		return
 	}
-}
-
-type DenyAccess struct{}
-
-func (d DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
-	return AuthenticationFailure, nil
 }
 
 func TestZAPDeny(t *testing.T) {
