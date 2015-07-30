@@ -140,6 +140,8 @@ func HandleZWS(w http.ResponseWriter, r *http.Request) {
 		ProxyReqRep(zws.ws, zws.zmq)
 	case SUB:
 		ProxySub(zws.ws, zws.zmq)
+	case DEALER:
+		ProxyDealer(zws.ws, zws.zmq)
 	default:
 		log.Printf("Invalid socket type, cannot handle.", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -254,4 +256,57 @@ func ProxySub(ws *websocket.Conn, zmq *czmq.Sock) {
 			break
 		}
 	}
+}
+
+func ProxyDealer(ws *websocket.Conn, zmq *czmq.Sock) {
+  go func() {
+    for {
+      frame, more, err := zmq.RecvFrame()
+      log.Printf("Dealer: zmq->ws | %s | %s", more, string(frame))
+      var payload [1]byte
+      if more&czmq.FlagMore == czmq.FlagMore {
+        payload[0] = MORE_FRAME
+      } else {
+        payload[0] = FINAL_FRAME
+      }
+      err = ws.WriteMessage(websocket.TextMessage, append(payload[:], frame...))
+      if err != nil {
+        log.Printf("ws.WriteMessage failed: %s", err)
+        break
+      }
+    }
+  }()
+
+  for {
+    messageType, message, err := ws.ReadMessage()
+    if err != nil {
+      log.Printf("Error conn.ReadMessage: %s", err)
+      return
+    }
+    log.Printf("Dealer: ws->zmq | %s | [%d]%s", err, len(message), string(message))
+    if messageType != websocket.TextMessage {
+      log.Printf("Got unexpected message type: %s", messageType)
+      //return &InvalidMessageTypeError{messageType}
+      return
+    }
+
+    flags := czmq.FlagNone
+    switch more := message[0]; more {
+    case FINAL_FRAME:
+      // Final frame, let's break out of the loop afterthis iteration
+    case MORE_FRAME: // There are more frames after this one.
+      flags |= czmq.FlagMore
+    default:
+      log.Printf("Got an invalid MORE frame value: %c", more)
+      //return &InvalidMoreFlagError{more}
+      break
+    }
+
+    log.Printf("Forwarding 1 frame: final(%s) - %s", message[0] == FINAL_FRAME, string(message[1:]))
+    err = zmq.SendFrame(message[1:], flags)
+    if err != nil {
+      log.Printf("zmq.SendFrame failed: %s\n", err)
+      return
+    }
+  }
 }
