@@ -1,0 +1,80 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  height: 100%;
+  width: 100%
+}
+
+.material-icons {
+  vertical-align: middle;
+}
+
+@media all {
+  .card {
+    width: 355px;
+    float: left;
+  }
+  .card img {
+    width: 320px;
+    height: 240px;
+  }
+}
+
+/* iPhone 6 */
+@media screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait) {
+  .card { 
+    width: 355px;
+  }
+  .card img {
+    height: 250px;
+  }
+}
+
+@media screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape) {
+  .card { 
+    width: 313px;
+  }
+  .card img {
+    padding: 10px;
+    height: 250px;
+  }
+}
+
+.card {
+  margin: 10px;
+  padding: 10px;
+}
+
+.mouse-pointer {
+  cursor: pointer;
+}
+
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+}
+
+.centered {
+  text-align: center;
+}
+
+.page {
+  margin: 10px;
+}
+
+.page > * {
+  padding: 10px;
+}
+
+#touchpad {
+  height: 100%;
+  width: 100%;
+  background: green;
+  display: block;
+}
+
+#content, #content > div {
+  height: 100%;
+  width: 100%;
+}
