@@ -40,6 +40,7 @@ func main() {
 		log.Fatalf("NewBroker(%s) failed: %s", broker_endpoint, err)
 	}
 	b.CurveCertificate = server_cert
+	b.Bind("inproc://fancy-dealer")
 	port, err := b.Bind("tcp://*:*")
 	log.Printf("Broker available at binding: tcp://127.0.0.1:%d", port)
 	go b.Run()
