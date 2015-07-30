@@ -22,7 +22,9 @@ ForeverSocket.prototype.send = function(message, callback) {
     this.pending.push([message, callback])
   } else {
     // Ready, send now.
-    this.setMessageHandler(callback);
+    if (callback !== null && callback !== undefined) {
+      this.setMessageHandler(callback);
+    }
     if (message instanceof Array) {
       for (i in message) {
         this.websocket.send(message[i]);
@@ -59,6 +61,11 @@ ForeverSocket.prototype.handleOpen = function(e) {
     next = this.pending.pop()
     this.send(next[0], next[1])
   }
+
+  if (this.connectedHandler === null || this.connectedHandler === undefined) {
+    return;
+  }
+  this.connectedHandler(this);
 }
 
 ForeverSocket.prototype.handleClose = function(e) { 
@@ -82,6 +89,10 @@ ForeverSocket.prototype.handleMessage = function(e) {
 
 ForeverSocket.prototype.setMessageHandler = function(callback) {
   this.messageHandler = callback;
+};
+
+ForeverSocket.prototype.setConnectedHandler = function(callback) {
+  this.connectedHandler = callback;
 };
 
 module.exports = ForeverSocket;
