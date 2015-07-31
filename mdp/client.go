@@ -160,7 +160,7 @@ func (c *Client) ensure_connected() error {
 		return nil
 	}
 
-	c.sock = czmq.NewSock(czmq.Req)
+	c.sock = newSock(czmq.Req)
 
 	if len(c.CurveServerPublicKey) > 0 {
 		cert := czmq.NewCert()

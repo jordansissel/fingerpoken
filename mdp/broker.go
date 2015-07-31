@@ -43,7 +43,7 @@ func NewBroker(endpoint string) (b *Broker, err error) {
 		MaxMissedHeartbeats: 3,
 	}
 	b.workers = make(map[string]*workerEntry)
-	b.sock = czmq.NewSock(czmq.Router)
+	b.sock = newSock(czmq.Router)
 	b.endpoint = endpoint
 	return
 }

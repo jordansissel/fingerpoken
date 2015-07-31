@@ -17,6 +17,7 @@ package mdp
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	czmq "github.com/zeromq/goczmq"
 	"math/rand"
@@ -180,4 +181,15 @@ func czmqPollerSafeWait(poller *czmq.Poller, timeout_milliseconds int) *czmq.Soc
 		}
 	}()
 	return poller.Wait(timeout_milliseconds)
+}
+
+func newSock(socktype int) *czmq.Sock {
+	sock := czmq.NewSock(socktype)
+	// ZWS (javascript, really) doesn't do well with the binary, so let's base64 the socket id
+	var id [12]byte
+	for i := 0; i < cap(id); i++ {
+		id[i] = byte(rand.Int() % 256)
+	}
+	sock.SetIdentity(base64.StdEncoding.EncodeToString(id[:]))
+	return sock
 }

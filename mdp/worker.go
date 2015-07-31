@@ -166,7 +166,7 @@ func (w *Worker) ensure_connected() error {
 		return nil
 	}
 
-	w.sock = czmq.NewSock(czmq.Dealer)
+	w.sock = newSock(czmq.Dealer)
 
 	// Setup CURVE if a key is set.
 	if len(w.CurveServerPublicKey) > 0 {
