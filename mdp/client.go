@@ -39,7 +39,7 @@ func NewClient(broker string) (c *Client) {
 	c = &Client{
 		broker:        broker,
 		RetryCount:    3,
-		RetryInterval: 100 * time.Millisecond,
+		RetryInterval: 500 * time.Millisecond,
 	}
 	return
 }
