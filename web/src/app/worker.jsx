@@ -25,7 +25,12 @@ var Worker = React.createClass({
   },
 
   componentWillMount: function() { 
-    this.worker = new zws.MajordomoWorker("ws://" + document.location.hostname + ":8111/zws/1.0", "webclient")
+    this.worker = new zws.MajordomoWorker("ws://" + document.location.hostname + ":8111/zws/1.0", "webclient");
+    this.worker.rpcHandler = {
+      ping: function(body, reply) {
+        reply.result = body;
+      }
+    };
   },
 
   componentWillUnmount: function() { 

@@ -41,13 +41,16 @@ ForeverSocket.prototype.connect = function() {
 }
 
 ForeverSocket.prototype.close = function() {
-  this.websocket.onclose = undefined; // stop autoreconnecting
-  this.websocket.onerror = undefined; // stop autoreconnecting
-  //this.websocket.close()
+  if (this.websocket !== undefined) {
+    this.websocket.onclose = undefined; // stop autoreconnecting
+    this.websocket.onerror = undefined; // stop autoreconnecting
+  }
+  if (this.reconnectTimer !== undefined) {
+    clearTimeout(this.reconnectTimer);
+  }
 }
 
 ForeverSocket.prototype.registerHandlers = function(socket) {
-  //socket.onopen = ...
   var self = this;
   socket.onopen = function(e) { self.handleOpen(e) };
   socket.onclose = function(e) { self.handleClose(e) };
@@ -72,11 +75,10 @@ ForeverSocket.prototype.handleClose = function(e) {
   this.websocket = undefined;
 
   var self = this;
-  setTimeout(function() { self.connect(); }, 200);
+  this.reconnectTimer = setTimeout(function() { self.connect(); }, 400);
 }
 
 ForeverSocket.prototype.handleError = function(e) { 
-  //this.websocket.close();
   this.websocket = undefined;
 }
 
