@@ -113,7 +113,7 @@ func (b *Broker) once(sock *czmq.Sock) {
 	if len(frames) < 4 || len(frames[1]) != 0 || len(frames[2]) != 6 {
 		// SPEC: broker SHOULD respond to invalid messages by dropping them and treating that peer as invalid.
 		log.Printf("Broker: Got an invalid message, skipping this message.")
-		log.Printf("Frames(%d), frame1(%d), frame2(%d), frame3(%d), frame4(%d)\n", len(frames), len(frames[1]), len(frames[2]), len(frames[3]), len(frames[4]))
+		log.Printf("Frames(%d): %v", len(frames), frames)
 		return
 	}
 
