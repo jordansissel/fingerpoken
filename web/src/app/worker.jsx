@@ -29,6 +29,10 @@ var Worker = React.createClass({
     this.worker.rpcHandler = {
       ping: function(body, reply) {
         reply.result = body;
+      },
+      openurl: function(body, reply) {
+        console.log("Openning " + body[0].url);
+        document.location.href = body[0].url;
       }
     };
   },

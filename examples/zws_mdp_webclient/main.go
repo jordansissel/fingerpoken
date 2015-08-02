@@ -16,6 +16,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/jordansissel/fingerpoken/mdp"
 	"github.com/jordansissel/fingerpoken/zap"
@@ -23,6 +24,7 @@ import (
 	czmq "github.com/zeromq/goczmq"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -48,13 +50,19 @@ func main() {
 
 	go func() {
 		client := mdp.NewClient(broker_endpoint)
+		reader := bufio.NewReader(os.Stdin)
 		for {
+			url, err := reader.ReadString('\n')
+			if err != nil {
+				log.Printf("ReadString error: %s", err)
+				break
+			}
 			start := time.Now()
-			response, err := client.SendRecv("webclient", [][]byte{[]byte(`{ "method": "ping", "params": [ "fancy" ], "id": "1234" }`)})
+			request := fmt.Sprintf(`{ "method": "openurl", "params": [ { "url": "%s" } ], "id": "1234" }`, url[0:len(url)-1])
+			response, err := client.SendRecv("webclient", [][]byte{[]byte(request)})
 			log.Printf("Response: %s", response)
 			log.Printf("Err: %s", err)
 			log.Printf("Duration: %s", time.Since(start))
-			time.Sleep(1 * time.Second)
 		}
 	}()
 

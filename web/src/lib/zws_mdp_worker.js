@@ -74,7 +74,6 @@ MajordomoWorker.prototype.handleMessage = function(request) {
 
 MajordomoWorker.prototype.handleRPC = function(buffer) {
   var client = buffer[3];
-  console.log(JSON.stringify(buffer));
   if (client == "") {
     console.log("Invalid request command (fourth frame must contain the client id)");
     return
@@ -84,7 +83,8 @@ MajordomoWorker.prototype.handleRPC = function(buffer) {
     return
   }
 
-  var obj = JSON.parse(buffer[5])
+  console.log(buffer[5]);
+  var obj = JSON.parse(buffer[5]);
   console.log("Method: " + obj.method);
 
   // TODO(sissel): Implement JSONRPC for this.
