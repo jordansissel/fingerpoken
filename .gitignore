@@ -1,1 +1,10 @@
-*.gem
+mouser/mouser
+examples/zws_mdp_jsonrpc_brightness/zws_mdp_jsonrpc_brightness
+examples/zws_pub/zws_pub
+examples/zws_mdp_echo/zws_mdp_echo
+examples/zws_echo/zws_echo
+examples/zws_mdp_webclient/zws_mdp_echo
+examples/zws_mdp_webclient/zws_mdp_webclient
+forwarder/forwarder
+web/build
+web/node_modules
