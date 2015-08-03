@@ -27,8 +27,9 @@ import (
 )
 
 type JSONRPCWorker struct {
-	rpc    *rpc.Server
-	worker *Worker
+	CurveServerPublicKey string
+	rpc                  *rpc.Server
+	worker               *Worker
 }
 
 func NewJSONRPCWorker(broker_endpoint, service string) (j *JSONRPCWorker) {
@@ -61,6 +62,9 @@ func (j *JSONRPCWorker) Register(handler interface{}) error {
 }
 
 func (j *JSONRPCWorker) Run() {
+	if len(j.CurveServerPublicKey) > 0 {
+		j.worker.CurveServerPublicKey = j.CurveServerPublicKey
+	}
 	j.worker.Run(j)
 }
 
