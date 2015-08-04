@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"math/rand"
 	"time"
 )

@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/websocket"
 	//"github.com/gorilla/mux"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"net/http"
 )
 

@@ -17,7 +17,7 @@ package mdp
 
 import (
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"testing"
 )
 

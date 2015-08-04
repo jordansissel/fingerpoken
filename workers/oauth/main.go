@@ -17,12 +17,12 @@ package main
 
 import (
 	//"github.com/jordansissel/fingerpoken/mdp"
-	//czmq "github.com/zeromq/goczmq"
+	//czmq "github.com/jordansissel/goczmq"
 	log "github.com/Sirupsen/logrus"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/jordansissel/fingerpoken/mdp"
 	"github.com/jordansissel/fingerpoken/workers"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"os"
 )
 

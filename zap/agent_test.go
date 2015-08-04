@@ -18,7 +18,7 @@ package zap
 import (
 	"bytes"
 	"fmt"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"math/rand"
 	"testing"
 )

@@ -18,7 +18,7 @@ package zws
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"net/http"
 	"time"
 )

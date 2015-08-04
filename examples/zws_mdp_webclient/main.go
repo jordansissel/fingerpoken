@@ -22,7 +22,7 @@ import (
 	"github.com/jordansissel/fingerpoken/mdp"
 	"github.com/jordansissel/fingerpoken/zap"
 	"github.com/jordansissel/fingerpoken/zws"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"net/http"
 	"os"
 	"time"

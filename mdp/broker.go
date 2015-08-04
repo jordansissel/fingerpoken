@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	log "github.com/Sirupsen/logrus"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"time"
 )
 

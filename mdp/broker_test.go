@@ -20,7 +20,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/zap"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"testing"
 	"time"
 )

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	// Use my fork until issue #145 is fixed/merged.
 	log "github.com/Sirupsen/logrus"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"time"
 )
 

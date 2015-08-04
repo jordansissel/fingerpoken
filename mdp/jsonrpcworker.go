@@ -20,7 +20,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/util"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"io/ioutil"
 	"net/rpc"
 	"net/rpc/jsonrpc"

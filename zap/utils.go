@@ -18,7 +18,7 @@ package zap
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 )
 
 func czmqSockSafeRecv(sock *czmq.Sock) (frame []byte, more int, err error) {

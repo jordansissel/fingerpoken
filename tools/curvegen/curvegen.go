@@ -19,7 +19,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	flags "github.com/jessevdk/go-flags"
-	czmq "github.com/zeromq/goczmq"
+	czmq "github.com/jordansissel/goczmq"
 	"os"
 )
 
