@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jordansissel/fingerpoken/util"
+	czmq "github.com/zeromq/goczmq"
 	"io/ioutil"
 	"log"
 	"net/rpc"
@@ -28,6 +29,7 @@ import (
 
 type JSONRPCWorker struct {
 	CurveServerPublicKey string
+	CurveCertificate     *czmq.Cert
 	rpc                  *rpc.Server
 	worker               *Worker
 }
@@ -64,6 +66,9 @@ func (j *JSONRPCWorker) Register(handler interface{}) error {
 func (j *JSONRPCWorker) Run() {
 	if len(j.CurveServerPublicKey) > 0 {
 		j.worker.CurveServerPublicKey = j.CurveServerPublicKey
+	}
+	if j.CurveCertificate != nil {
+		j.worker.CurveCertificate = j.CurveCertificate
 	}
 	j.worker.Run(j)
 }

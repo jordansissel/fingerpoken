@@ -30,6 +30,7 @@ type Worker struct {
 	HeartbeatInterval    time.Duration
 	MaxMissedHeartbeats  int64
 	CurveServerPublicKey string
+	CurveCertificate     *czmq.Cert
 
 	brokerExpiration time.Time
 	poller           *czmq.Poller
@@ -170,10 +171,12 @@ func (w *Worker) ensure_connected() error {
 
 	// Setup CURVE if a key is set.
 	if len(w.CurveServerPublicKey) > 0 {
-		cert := czmq.NewCert()
-		cert.Apply(w.sock)
 		w.sock.SetCurveServerkey(w.CurveServerPublicKey)
 	}
+	if w.CurveCertificate == nil {
+		w.CurveCertificate = czmq.NewCert()
+	}
+	w.CurveCertificate.Apply(w.sock)
 
 	err := w.sock.Connect(w.broker)
 	if err != nil {
