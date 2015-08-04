@@ -60,7 +60,6 @@ func (o *OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error
 	return Success, nil
 }
 
-var NULL_PRIVATE_KEY [32]byte
 type DenyAccess struct{}
 
 func (d *DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
