@@ -55,14 +55,49 @@ func logAuthRequest(authRequest ZapRequest) {
 	}
 }
 
-func (o OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+func (o *OpenAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
 	logAuthRequest(authRequest)
 	return Success, nil
 }
 
+var NULL_PRIVATE_KEY [32]byte
 type DenyAccess struct{}
 
-func (d DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+func (d *DenyAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
 	logAuthRequest(authRequest)
 	return AuthenticationFailure, nil
+}
+
+type RestrictedAccess struct {
+	//Store *czmq.CertStore
+	Trusted map[string]bool
+}
+
+func NewRestrictedAccess() (r *RestrictedAccess) {
+  r = &RestrictedAccess{
+    Trusted: make(map[string]bool),
+  }
+  return r
+}
+
+func (r *RestrictedAccess) Allow(public_key string) {
+  //r.Store.Insert(cert)
+  r.Trusted[public_key] = true
+}
+
+func (r *RestrictedAccess) Authorize(authRequest ZapRequest) (status Status, err error) {
+	if authRequest.Mechanism != "CURVE" {
+		return AuthenticationFailure, fmt.Errorf("Auth mechanism must be CURVE")
+	}
+	if len(authRequest.Credentials) != 1 {
+		return AuthenticationFailure, fmt.Errorf("Invalid credentials format")
+	}
+
+	client_key := string(authRequest.Credentials[0])
+	if !r.Trusted[client_key] {
+    log.Info("Trusting this client for next time")
+    r.Allow(client_key)
+		return AuthenticationFailure, nil
+	}
+	return Success, nil
 }

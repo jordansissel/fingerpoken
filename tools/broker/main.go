@@ -29,6 +29,7 @@ import (
 
 type Settings struct {
 	ServerCertificatePath string `long:"server-certificate" required:"true"`
+	CertificateStorePath  string `long:"trusted-certificates-path" required:"true"`
 	// TODO(sissel): Allow specifyinj the port to bind to.
 }
 
@@ -45,17 +46,17 @@ func main() {
 		}
 	}
 
-	agent, _ := zap.NewZapAgent()
-	// TODO(sissel): Gate access to prevent untrusted connections.
-	go agent.Run(&zap.OpenAccess{})
-	defer agent.Destroy()
-
 	broker_endpoint := "inproc://fancy-req"
 	server_cert, err := czmq.NewCertFromFile(settings.ServerCertificatePath)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
 	}
+
+	agent, _ := zap.NewZapAgent()
+	// TODO(sissel): Gate access to prevent untrusted connections.
+	go agent.Run(zap.NewRestrictedAccess())
+	defer agent.Destroy()
 
 	b, err := mdp.NewBroker(broker_endpoint)
 	if err != nil {
@@ -74,6 +75,11 @@ func RunHTTP(address, path string) {
 	mux.HandleFunc(path, zws.HandleZWS)
 	log.Printf("Listening on http://%s%s", address, path)
 	server := http.Server{Addr: address, Handler: mux}
+
+	// TODO(sissel): Add oauth2 handler for gomniauth
+	// Rough example here: https://github.com/stretchr/gomniauth/blob/master/example/nethttp/main.go
+	// Goal is to allow external credential delegation from user to a worker.
+	// For example, to have a worker access my google calendar.
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("server.ListenAndServe failed: %s", err)
