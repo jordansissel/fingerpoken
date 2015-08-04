@@ -16,9 +16,9 @@
 package main
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/zws"
 	czmq "github.com/zeromq/goczmq"
-	"log"
 	"net/http"
 )
 

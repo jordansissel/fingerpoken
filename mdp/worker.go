@@ -17,8 +17,8 @@ package mdp
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	czmq "github.com/zeromq/goczmq"
-	"log"
 	"time"
 )
 

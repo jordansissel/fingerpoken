@@ -17,11 +17,11 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/mdp"
 	"github.com/jordansissel/fingerpoken/zap"
 	"github.com/jordansissel/fingerpoken/zws"
 	czmq "github.com/zeromq/goczmq"
-	"log"
 	"net/http"
 )
 

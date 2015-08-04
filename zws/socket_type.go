@@ -17,8 +17,8 @@ package zws
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	czmq "github.com/zeromq/goczmq"
-	"log"
 )
 
 type SocketType int8

@@ -16,7 +16,7 @@
 package main
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type echoWorker struct{}

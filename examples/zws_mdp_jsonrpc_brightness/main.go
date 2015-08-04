@@ -17,9 +17,9 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/mdp"
 	"io/ioutil"
-	"log"
 	"os"
 	"strconv"
 )

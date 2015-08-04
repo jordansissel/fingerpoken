@@ -18,10 +18,10 @@ package mdp
 import (
 	"bytes"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jordansissel/fingerpoken/util"
 	czmq "github.com/zeromq/goczmq"
 	"io/ioutil"
-	"log"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"reflect"
