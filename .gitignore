@@ -11,3 +11,5 @@ web/node_modules
 tools/broker/broker
 tools/curvegen/curvegen
 workers/oauth/oauth
+
+web/*.jpg
