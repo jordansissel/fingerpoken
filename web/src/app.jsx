@@ -22,6 +22,7 @@ var Notifications = require("app/notifications");
 var Touchpad = require("app/touchpad");
 var Scratch = require("app/scratch");
 var Worker = require("app/worker");
+var Pushover = require("app/pushover");
 var routes = (
   <Route handler={App}>
     <DefaultRoute handler={Home}/>
@@ -31,6 +32,7 @@ var routes = (
     <Route name="touchpad" handler={Touchpad}/>
     <Route name="scratch" handler={Scratch}/>
     <Route name="worker" handler={Worker}/>
+    <Route name="pushover" handler={Pushover}/>
   </Route>
 );
 
