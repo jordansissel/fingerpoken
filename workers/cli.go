@@ -16,7 +16,7 @@
 package workers
 
 type Settings struct {
-	Broker                string `short:"b" long:"broker" required:"true"`
+	Broker                string `long:"broker" required:"true"`
 	BrokerKeyPath         string `long:"broker-public-key" required:"true"`
 	ClientCertificatePath string `long:"client-certificate" required:"true"`
 }
