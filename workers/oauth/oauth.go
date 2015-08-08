@@ -16,12 +16,53 @@
 package main
 
 import (
-//log "github.com/Sirupsen/logrus"
+	"github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/google"
+	"github.com/stretchr/objx"
+	"github.com/stretchr/signature"
 )
 
-type OAuth struct{}
-type Empty struct{}
+func init() {
+	gomniauth.SetSecurityKey(signature.RandomKey(64))
+}
 
-func (o *OAuth) SomePublicFunction(args *Empty, reply *Empty) error {
+type OAuth struct {
+	ClientKeys map[string]ClientKey // key == provider name
+}
+
+type ClientKey struct {
+	ClientId     string `json:id`
+	ClientSecret string `json:secret`
+}
+
+type OAuthLoginStart struct {
+	Provider    string `json:provider`
+	Scope       string `json:scope`
+	CallbackURL string `json:callback`
+}
+
+type OAuthLoginRedirect struct {
+	AuthURL string `json:authurl`
+}
+
+type Empty struct{}
+type ProviderList []string
+
+// RPC Call OAuth.ListProviders
+func (o *OAuth) ListProviders(args *Empty, reply *ProviderList) error {
+	// TODO(sissel): Make this actually look up the known providers list.
+	*reply = append(*reply, "google")
+	return nil
+}
+
+// RPC Call OAuth.Login
+// Takes an OAuthLoginStart w/ provider name
+func (o *OAuth) StartLogin(login *OAuthLoginStart, reply *OAuthLoginRedirect) (err error) {
+	provider := google.New("952973200910-mt6fvajdvnhjgb9h7hlli2sqpjmu4lp5.apps.googleusercontent.com", "6J2oSU53bKuSmzQIpC8sEH3f", login.CallbackURL)
+	state := gomniauth.NewState("after", "success")
+	options := objx.Map{
+		"scope": login.Scope,
+	}
+	reply.AuthURL, err = provider.GetBeginAuthURL(state, options)
 	return nil
 }
