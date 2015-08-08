@@ -27,8 +27,8 @@ type Settings struct {
 	ClientCertificatePath string `long:"client-certificate" required:"true"`
 }
 
-func ParseArgs(settings interface{}) {
-	_, err := flags.Parse(settings)
+func ParseArgs(settings interface{}) []string {
+	remaining, err := flags.Parse(settings)
 	if err != nil {
 		switch err.(*flags.Error).Type {
 		case flags.ErrHelp:
@@ -38,4 +38,6 @@ func ParseArgs(settings interface{}) {
 			os.Exit(1)
 		}
 	}
+
+	return remaining
 }
