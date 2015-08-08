@@ -53,7 +53,15 @@ type RequestHandler interface {
 }
 
 func (w *Worker) Run(requestHandler RequestHandler) error {
-	w.ensure_connected()
+	for {
+		err := w.ensure_connected()
+		if err == nil {
+			break
+		}
+		log.Printf("ensure_connected: %s", err)
+		time.Sleep(200 * time.Millisecond)
+	}
+
 	nextHeartbeat := time.Now().Add(w.HeartbeatInterval)
 	w.brokerExpiration = w.nextExpiration()
 	for {
@@ -178,10 +186,12 @@ func (w *Worker) ensure_connected() error {
 	}
 	w.CurveCertificate.Apply(w.sock)
 
+	log.WithFields(log.Fields{"endpoint": w.broker}).Info("Connecting")
 	err := w.sock.Connect(w.broker)
 	if err != nil {
 		w.sock.Destroy()
 		w.sock = nil
+		return err
 	}
 
 	w.poller, err = czmq.NewPoller(w.sock)
