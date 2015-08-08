@@ -24,13 +24,12 @@ import (
 
 // TODO(sissel): turn this into an interface?
 type Worker struct {
-	sock                 *czmq.Sock
-	broker               string
-	service              string
-	HeartbeatInterval    time.Duration
-	MaxMissedHeartbeats  int64
-	CurveServerPublicKey string
-	CurveCertificate     *czmq.Cert
+	CurveInfo
+	sock                *czmq.Sock
+	broker              string
+	service             string
+	HeartbeatInterval   time.Duration
+	MaxMissedHeartbeats int64
 
 	brokerExpiration time.Time
 	poller           *czmq.Poller

@@ -30,9 +30,9 @@ type Client struct {
 	poller    *czmq.Poller
 	destroyed bool
 
-	RetryInterval        time.Duration
-	RetryCount           int64
-	CurveServerPublicKey string
+	RetryInterval time.Duration
+	RetryCount    int64
+	CurveInfo
 }
 
 func NewClient(broker string) (c *Client) {
@@ -162,11 +162,15 @@ func (c *Client) ensure_connected() error {
 
 	c.sock = newSock(czmq.Req)
 
+	// Setup CURVE if a key is set.
 	if len(c.CurveServerPublicKey) > 0 {
-		cert := czmq.NewCert()
-		cert.Apply(c.sock)
 		c.sock.SetCurveServerkey(c.CurveServerPublicKey)
 	}
+	if c.CurveCertificate == nil {
+		log.Warn("No CurveCertificate given. Will generate a new one.")
+		c.CurveCertificate = czmq.NewCert()
+	}
+	c.CurveCertificate.Apply(c.sock)
 
 	err := c.sock.Connect(c.broker)
 	if err != nil {
