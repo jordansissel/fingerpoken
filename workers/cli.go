@@ -15,8 +15,27 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package workers
 
+import (
+	log "github.com/Sirupsen/logrus"
+	flags "github.com/jessevdk/go-flags"
+	"os"
+)
+
 type Settings struct {
 	Broker                string `long:"broker" required:"true"`
 	BrokerKeyPath         string `long:"broker-public-key" required:"true"`
 	ClientCertificatePath string `long:"client-certificate" required:"true"`
+}
+
+func ParseArgs(settings interface{}) {
+	_, err := flags.Parse(settings)
+	if err != nil {
+		switch err.(*flags.Error).Type {
+		case flags.ErrHelp:
+			os.Exit(0)
+		default:
+			log.Error(err.Error())
+			os.Exit(1)
+		}
+	}
 }
