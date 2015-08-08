@@ -31,7 +31,8 @@ type PushoverMessage struct {
 	URL       string `json:url`
 	URLTitle  string `json:url_title`
 	Priority  int    `json:priority`
-	Timestamp int64
+	Retry     int    `json:retry`
+	Timestamp int64  `json:timestamp`
 
 	//Device string
 	//Sound string
@@ -55,6 +56,7 @@ func (p *Pushover) Send(args *PushoverMessage, reply *PushoverResponse) error {
 	message := pushover.Message{
 		Message:  args.Message,
 		Priority: args.Priority,
+		Retry:    args.Retry,
 	}
 
 	if len(args.Title) > 0 {
@@ -78,13 +80,13 @@ func (p *Pushover) Send(args *PushoverMessage, reply *PushoverResponse) error {
 	// TODO(sissel): message.Retry
 	// TODO(sissel): message.Expire
 	//
-	request, receipt, err := papi.Push(&message)
+	request, _, err := papi.Push(&message)
 	if err != nil {
 		log.Printf("papi.Push() failed: %s", err)
 		return err
 	}
 
-	reply.request = request
+	reply.Request = request
 	// TODO(sissel): What to do with receipt?
 	return nil
 }
